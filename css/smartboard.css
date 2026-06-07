@@ -1,0 +1,721 @@
+/*
+====================================================
+OPERATION HUNT — SMART BOARD DISPLAY
+====================================================
+*/
+
+.smartboard-page {
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
+    background: #f4f7fb;
+}
+
+.smartboard-shell {
+    display: grid;
+    grid-template-rows:
+        clamp(108px, 14vh, 138px) minmax(0, 1fr);
+
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/*
+====================================================
+TOP BAR
+====================================================
+*/
+
+.smartboard-topbar {
+    display: grid;
+
+    grid-template-columns:
+        minmax(330px, 1.35fr) minmax(300px, 1.1fr) minmax(245px, 0.85fr) minmax(265px, 0.95fr);
+
+    align-items: stretch;
+
+    background: #082a55;
+    color: #ffffff;
+
+    border-bottom: 4px solid #d8e1eb;
+}
+
+.smartboard-brand-panel,
+.smartboard-instruction-panel,
+.smartboard-active-card,
+.smartboard-status-card {
+    min-width: 0;
+
+    padding:
+        clamp(12px, 1.8vh, 20px) clamp(14px, 1.5vw, 24px);
+}
+
+/*
+====================================================
+BRAND
+====================================================
+*/
+
+.smartboard-brand-panel {
+    display: flex;
+    align-items: center;
+
+    gap: clamp(12px, 1.5vw, 20px);
+
+    border-right:
+        1px solid rgba(255, 255, 255, 0.25);
+}
+
+.brand-icon {
+    display: grid;
+    place-items: center;
+
+    flex-shrink: 0;
+
+    width: clamp(64px, 5vw, 82px);
+    height: clamp(64px, 5vw, 82px);
+
+    border-radius: 50%;
+
+    background: #ffffff;
+
+    font-size: clamp(2rem, 3.3vw, 3.3rem);
+}
+
+.smartboard-brand-copy {
+    display: grid;
+
+    min-width: 0;
+
+    gap: 2px;
+}
+
+.brand-operation-line {
+    font-size:
+        clamp(1.45rem, 2.35vw, 2.45rem);
+
+    font-weight: 900;
+
+    line-height: 0.95;
+
+    letter-spacing: 0.015em;
+
+    white-space: nowrap;
+}
+
+.brand-hunt-line {
+    display: flex;
+    align-items: flex-end;
+
+    min-width: 0;
+
+    gap: clamp(9px, 1vw, 15px);
+}
+
+.brand-hunt {
+    flex-shrink: 0;
+
+    font-size:
+        clamp(1.45rem, 2.35vw, 2.45rem);
+
+    font-weight: 900;
+
+    line-height: 0.95;
+
+    letter-spacing: 0.015em;
+
+    white-space: nowrap;
+}
+
+.brand-mode {
+    flex-shrink: 0;
+
+    padding-bottom: 2px;
+
+    color: #ffd43b;
+
+    font-size:
+        clamp(0.72rem, 0.95vw, 0.95rem);
+
+    font-weight: 900;
+
+    white-space: nowrap;
+}
+
+/*
+====================================================
+INSTRUCTIONS
+====================================================
+*/
+
+.smartboard-instruction-panel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: clamp(10px, 1vw, 18px);
+
+    border-right:
+        1px solid rgba(255, 255, 255, 0.25);
+}
+
+.instruction-icon {
+    flex-shrink: 0;
+
+    font-size:
+        clamp(2rem, 3vw, 3.1rem);
+}
+
+.smartboard-instruction-panel p {
+    max-width: 360px;
+
+    margin: 0;
+
+    font-size:
+        clamp(1rem, 1.6vw, 1.55rem);
+
+    font-weight: 800;
+
+    line-height: 1.15;
+}
+
+/*
+====================================================
+ACTIVE PLAYER
+====================================================
+*/
+
+.smartboard-active-card {
+    display: grid;
+    align-content: center;
+    justify-items: center;
+
+    margin:
+        clamp(12px, 1.8vh, 19px) clamp(10px, 1vw, 18px);
+
+    padding: 8px 12px;
+
+    border-radius: 18px;
+
+    background:
+        linear-gradient(145deg,
+            #23b94b,
+            #087d2e);
+
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.35),
+        0 5px 12px rgba(0, 0, 0, 0.2);
+}
+
+.smartboard-active-card span {
+    font-size:
+        clamp(0.7rem, 0.95vw, 0.92rem);
+
+    font-weight: 900;
+}
+
+.smartboard-active-card strong {
+    max-width: 100%;
+
+    overflow: hidden;
+
+    font-size:
+        clamp(1.6rem, 2.8vw, 2.8rem);
+
+    line-height: 1;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/*
+====================================================
+SESSION STATUS
+====================================================
+*/
+
+.smartboard-status-card {
+    display: grid;
+    align-content: center;
+    justify-items: center;
+
+    margin:
+        clamp(12px, 1.8vh, 19px) clamp(10px, 1vw, 18px);
+
+    border: 2px solid #55a9ff;
+    border-radius: 18px;
+
+    background:
+        linear-gradient(145deg,
+            #2684ef,
+            #0865c6);
+
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.35),
+        0 5px 12px rgba(0, 0, 0, 0.2);
+}
+
+.smartboard-status-card span {
+    color: #ffffff;
+
+    font-size:
+        clamp(0.68rem, 0.9vw, 0.88rem);
+
+    font-weight: 900;
+}
+
+.smartboard-status-card strong {
+    max-width: 100%;
+
+    overflow: hidden;
+
+    color: #ffffff;
+
+    font-size:
+        clamp(1rem, 1.6vw, 1.5rem);
+
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.smartboard-status-card.time-up {
+    border-color: #ff5d55;
+
+    background:
+        linear-gradient(145deg,
+            #df241c,
+            #8e0c08);
+
+    box-shadow:
+        0 0 18px rgba(239, 59, 50, 0.75);
+}
+
+/*
+====================================================
+MAIN CONTENT
+====================================================
+*/
+
+.smartboard-content {
+    display: grid;
+
+    grid-template-columns:
+        minmax(280px, 29%) minmax(0, 1fr);
+
+    min-width: 0;
+    min-height: 0;
+
+    gap: clamp(14px, 1.7vw, 25px);
+
+    padding:
+        clamp(16px, 2vh, 26px);
+}
+
+.smartboard-left-column {
+    display: grid;
+
+    grid-template-rows:
+        auto minmax(0, 1fr);
+
+    min-width: 0;
+    min-height: 0;
+
+    gap: clamp(12px, 1.5vh, 18px);
+}
+
+.smartboard-right-column {
+    display: grid;
+
+    grid-template-rows:
+        minmax(0, 1fr) auto;
+
+    min-width: 0;
+    min-height: 0;
+
+    gap: clamp(12px, 1.5vh, 18px);
+}
+
+/*
+====================================================
+SCOREBOARD
+====================================================
+*/
+
+.smartboard-scoreboard {
+    border: 1px solid #d2d9e2;
+    border-radius: 17px;
+
+    box-shadow:
+        0 5px 14px rgba(21, 51, 85, 0.13);
+}
+
+.smartboard-scoreboard h2 {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+
+    gap: 10px;
+
+    padding:
+        clamp(9px, 1.3vh, 13px) clamp(16px, 1.5vw, 24px);
+
+    background:
+        linear-gradient(145deg,
+            #17a238,
+            #067a2a);
+
+    font-size:
+        clamp(1rem, 1.5vw, 1.45rem);
+
+    text-align: left;
+}
+
+.smartboard-scoreboard .scoreboard-header {
+    background: #ffffff;
+    color: #142235;
+
+    font-size:
+        clamp(0.72rem, 0.95vw, 0.9rem);
+}
+
+.smartboard-scoreboard .scoreboard-header span,
+.smartboard-scoreboard .player-row span {
+    border-color: #d8dee6;
+}
+
+.smartboard-scoreboard .player-row {
+    background: #ffffff;
+    color: #526173;
+
+    font-size:
+        clamp(0.8rem, 1vw, 1rem);
+}
+
+.smartboard-scoreboard .player-row.active {
+    background:
+        linear-gradient(90deg,
+            #edf8ee,
+            #e1f2e4);
+
+    color: #138234;
+
+    font-weight: 900;
+}
+
+.smartboard-scoreboard .player-row.inactive {
+    background: #ffffff;
+    color: #7d8998;
+}
+
+/*
+====================================================
+TIMER
+====================================================
+*/
+
+.smartboard-timer {
+    align-content: start;
+
+    min-height: 0;
+
+    border: 1px solid #b7d5fb;
+    border-radius: 17px;
+
+    box-shadow:
+        0 5px 14px rgba(21, 51, 85, 0.13);
+}
+
+.smartboard-timer .timer-header {
+    margin:
+        calc(clamp(8px, 1.1vh, 13px) * -1) calc(clamp(8px, 1.1vh, 13px) * -1) 8px;
+
+    padding:
+        clamp(9px, 1.3vh, 13px) clamp(15px, 1.5vw, 22px);
+
+    border-radius: 15px 15px 0 0;
+
+    background:
+        linear-gradient(145deg,
+            #2688ef,
+            #0867cb);
+}
+
+.smartboard-timer .timer-header h2 {
+    color: #ffffff;
+
+    font-size:
+        clamp(0.95rem, 1.4vw, 1.35rem);
+}
+
+.smartboard-timer-state {
+    padding: 5px 15px;
+
+    border-radius: 99px;
+
+    background: #09529e;
+    color: #ffffff;
+}
+
+.smartboard-timer .timer-ring {
+    width: min(23vh, 220px);
+    height: min(23vh, 220px);
+
+    max-width: 92%;
+    max-height: 92%;
+}
+
+.smartboard-timer .timer-display {
+    color: #082c5b;
+
+    font-size:
+        clamp(2rem, 3.7vw, 3.8rem);
+}
+
+.smartboard-timer .timer-caption {
+    color: #1677e9;
+
+    font-size:
+        clamp(0.58rem, 0.75vw, 0.74rem);
+}
+
+.smartboard-timer.time-up .timer-header {
+    background:
+        linear-gradient(145deg,
+            #e42a21,
+            #8c0b07);
+}
+
+.smartboard-timer.time-up {
+    background: #320909;
+}
+
+/*
+====================================================
+PUZZLE
+====================================================
+*/
+
+.smartboard-puzzle-section {
+    min-height: 0;
+
+    padding:
+        clamp(14px, 1.5vw, 22px);
+
+    border: 1px solid #d6dde6;
+    border-radius: 20px;
+
+    background: #ffffff;
+
+    box-shadow:
+        0 6px 18px rgba(21, 51, 85, 0.13);
+}
+
+.smartboard-puzzle-board {
+    gap: 10px;
+
+    padding: 10px;
+
+    border: 0;
+
+    background: #ffffff;
+}
+
+.smartboard-puzzle-board .puzzle-cell {
+    border: 0;
+    border-radius: 8px;
+
+    background:
+        linear-gradient(145deg,
+            #9dde45,
+            #78c62e);
+
+    font-size:
+        clamp(4rem, 10vh, 8.5rem);
+
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.45),
+        0 2px 5px rgba(41, 78, 20, 0.18);
+}
+
+.smartboard-puzzle-board .puzzle-cell:hover {
+    filter: brightness(1.06);
+}
+
+.smartboard-puzzle-board .puzzle-cell.selected {
+    background:
+        linear-gradient(145deg,
+            #ffdb49,
+            #f6ac00);
+}
+
+.smartboard-puzzle-board .puzzle-cell.correct {
+    background:
+        linear-gradient(145deg,
+            #42c85f,
+            #15943a);
+
+    color: #ffffff;
+}
+
+.smartboard-puzzle-board.wrong .puzzle-cell,
+.smartboard-puzzle-board.time-up .puzzle-cell {
+    background:
+        linear-gradient(145deg,
+            #f0544a,
+            #cf2119);
+
+    color: #ffffff;
+}
+
+/*
+====================================================
+EQUATION
+====================================================
+*/
+
+.smartboard-equation {
+    min-height:
+        clamp(64px, 8vh, 92px);
+
+    border: 3px solid #075326;
+    border-radius: 12px;
+}
+
+.smartboard-equation span {
+    min-width: 180px;
+
+    background:
+        linear-gradient(145deg,
+            #087b34,
+            #035324);
+
+    font-size:
+        clamp(0.9rem, 1.2vw, 1.15rem);
+}
+
+.smartboard-equation strong {
+    color: #142235;
+
+    font-size:
+        clamp(1.8rem, 3.6vw, 3.7rem);
+}
+
+/*
+====================================================
+SUMMARY CARDS
+====================================================
+*/
+
+.smartboard-summary {
+    gap:
+        clamp(10px, 1vw, 16px);
+}
+
+.smartboard-summary article {
+    min-height:
+        clamp(76px, 9vh, 105px);
+
+    border: 1px solid #d8dee6;
+    border-radius: 16px;
+
+    box-shadow:
+        0 5px 14px rgba(21, 51, 85, 0.13);
+}
+
+.smartboard-summary .summary-icon {
+    width:
+        clamp(48px, 4.5vw, 70px);
+
+    height:
+        clamp(48px, 4.5vw, 70px);
+
+    font-size:
+        clamp(1.5rem, 2.4vw, 2.35rem);
+}
+
+.smartboard-summary article>div>span {
+    font-size:
+        clamp(0.72rem, 0.95vw, 0.92rem);
+
+    text-transform: uppercase;
+}
+
+.smartboard-summary strong {
+    font-size:
+        clamp(1.8rem, 3vw, 3rem);
+}
+
+/*
+====================================================
+LOWER-HEIGHT SCREENS
+====================================================
+*/
+
+@media (max-height: 800px) {
+    .smartboard-shell {
+        grid-template-rows:
+            108px minmax(0, 1fr);
+    }
+
+    .smartboard-content {
+        gap: 12px;
+        padding: 12px;
+    }
+
+    .smartboard-left-column,
+    .smartboard-right-column {
+        gap: 9px;
+    }
+
+    .smartboard-scoreboard .scoreboard-header span,
+    .smartboard-scoreboard .player-row span {
+        min-height: 30px;
+    }
+
+    .smartboard-timer .timer-ring {
+        width: 135px;
+        height: 135px;
+    }
+
+    .smartboard-puzzle-section {
+        padding: 10px;
+    }
+
+    .smartboard-puzzle-board {
+        gap: 7px;
+        padding: 7px;
+    }
+
+    .smartboard-equation {
+        min-height: 54px;
+    }
+
+    .smartboard-summary article {
+        min-height: 65px;
+    }
+}
+
+/*
+====================================================
+NARROW DISPLAY FALLBACK
+====================================================
+*/
+
+@media (max-width: 1100px) {
+    .smartboard-topbar {
+        grid-template-columns:
+            minmax(270px, 1.25fr) minmax(250px, 1fr) minmax(195px, 0.8fr) minmax(205px, 0.9fr);
+    }
+
+    .smartboard-content {
+        grid-template-columns:
+            minmax(245px, 31%) minmax(0, 1fr);
+    }
+
+    .brand-mode {
+        font-size: 0.72rem;
+    }
+}

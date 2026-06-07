@@ -1,0 +1,632 @@
+html,
+body {
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.teacher-page {
+    min-height: 100vh;
+    overflow-y: auto;
+}
+
+.teacher-control-panel {
+    min-height: 100vh;
+    height: auto;
+}
+
+/*
+====================================================
+OPERATION HUNT — TEACHER CONTROLS
+====================================================
+*/
+
+.teacher-page {
+    width: 100vw;
+    min-height: 100vh;
+    margin: 0;
+    background: #eef3f8;
+    overflow-x: hidden;
+}
+
+.teacher-shell {
+    display: grid;
+    grid-template-columns:
+        clamp(270px, 22vw, 340px) minmax(0, 1fr);
+
+    width: 100vw;
+    min-height: 100vh;
+}
+
+/*
+====================================================
+LEFT CONTROL PANEL
+====================================================
+*/
+
+.teacher-control-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+
+    min-height: 100vh;
+    padding: 22px;
+
+    background:
+        linear-gradient(180deg,
+            #07111d,
+            #02060a);
+
+    color: #ffffff;
+}
+
+.teacher-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.teacher-brand-icon {
+    display: grid;
+    place-items: center;
+
+    flex-shrink: 0;
+
+    width: 62px;
+    height: 62px;
+
+    border-radius: 50%;
+    background: #ffffff;
+
+    font-size: 2.25rem;
+}
+
+.teacher-brand h1 {
+    margin: 0;
+
+    font-size:
+        clamp(1.3rem, 1.8vw, 1.8rem);
+
+    line-height: 0.95;
+}
+
+.teacher-brand p {
+    margin: 6px 0 0;
+
+    color: #ffd43b;
+    font-weight: 800;
+}
+
+/*
+====================================================
+STATUS
+====================================================
+*/
+
+.teacher-status-card {
+    display: grid;
+    gap: 5px;
+
+    padding: 15px;
+
+    border: 2px solid #2684ff;
+    border-radius: 12px;
+
+    background: #101a27;
+    text-align: center;
+}
+
+.teacher-status-card span {
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+.teacher-status-card strong {
+    color: #3191ff;
+    font-size: 1rem;
+}
+
+.teacher-status-card.time-up {
+    border-color: #ef3b32;
+    background: #3b0909;
+}
+
+.teacher-status-card.time-up strong {
+    color: #ffffff;
+}
+
+/*
+====================================================
+CONTROL BUTTONS
+====================================================
+*/
+
+.teacher-button-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.teacher-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 74px;
+    padding: 10px;
+
+    border: 0;
+    border-radius: 12px;
+
+    color: #ffffff;
+
+    font-size: 0.78rem;
+    font-weight: 900;
+
+    cursor: pointer;
+
+    transition:
+        transform 100ms ease,
+        filter 100ms ease;
+}
+
+.teacher-button span {
+    margin-bottom: 4px;
+    font-size: 1.45rem;
+}
+
+.teacher-button:hover {
+    filter: brightness(1.1);
+}
+
+.teacher-button:active {
+    transform: scale(0.97);
+}
+
+/*
+====================================================
+SETTINGS CARDS
+====================================================
+*/
+
+.teacher-settings-card,
+.teacher-timer-card {
+    display: grid;
+    gap: 7px;
+
+    padding: 14px;
+
+    border: 1px solid #283747;
+    border-radius: 12px;
+
+    background: #111a25;
+}
+
+.teacher-settings-card h2,
+.teacher-timer-card h2 {
+    margin: 0 0 3px;
+
+    font-size: 0.95rem;
+}
+
+.teacher-settings-card label,
+.teacher-timer-card label {
+    font-size: 0.7rem;
+    font-weight: 800;
+}
+
+.teacher-settings-card input,
+.teacher-settings-card select,
+.teacher-timer-card select {
+    width: 100%;
+    min-height: 34px;
+
+    padding: 5px 8px;
+
+    border: 0;
+    border-radius: 6px;
+
+    background: #ffffff;
+}
+
+/*
+====================================================
+TIMER CONTROLS
+====================================================
+*/
+
+.teacher-timer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.teacher-timer-display {
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+
+    padding: 12px;
+
+    border-radius: 9px;
+    background: #061326;
+}
+
+.teacher-timer-display strong {
+    font-size: 2.2rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.teacher-timer-display span {
+    color: #3a99ff;
+    font-size: 0.65rem;
+    font-weight: 900;
+}
+
+.teacher-timer-card.time-up {
+    border-color: #ef3b32;
+    background: #3b0909;
+}
+
+.teacher-timer-card.time-up .teacher-timer-display {
+    background: #7d0d0d;
+}
+
+.teacher-timer-card.time-up .teacher-timer-display strong,
+.teacher-timer-card.time-up .teacher-timer-display span {
+    color: #ffffff;
+}
+
+/*
+====================================================
+MAIN DASHBOARD
+====================================================
+*/
+
+.teacher-dashboard {
+    display: grid;
+    grid-template-rows:
+        auto auto minmax(0, 1fr) auto;
+
+    min-width: 0;
+    gap: 18px;
+    padding: 25px;
+}
+
+.teacher-dashboard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.teacher-dashboard-header p {
+    margin: 0;
+
+    color: #68798b;
+    font-size: 0.82rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.teacher-dashboard-header h2 {
+    margin: 4px 0 0;
+
+    color: #0b2f63;
+    font-size: clamp(1.7rem, 2.7vw, 2.7rem);
+}
+
+.teacher-active-player {
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+
+    min-width: 220px;
+    padding: 14px 25px;
+
+    border-radius: 14px;
+
+    background:
+        linear-gradient(145deg,
+            #23b94b,
+            #087d2e);
+
+    color: #ffffff;
+}
+
+.teacher-active-player span {
+    font-size: 0.7rem;
+    font-weight: 900;
+}
+
+.teacher-active-player strong {
+    max-width: 260px;
+
+    overflow: hidden;
+
+    font-size: 1.75rem;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/*
+====================================================
+SUMMARY CARDS
+====================================================
+*/
+
+.teacher-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+}
+
+.summary-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 13px;
+
+    min-height: 105px;
+    padding: 16px;
+
+    border-radius: 14px;
+    background: #ffffff;
+
+    box-shadow:
+        0 5px 14px rgba(21, 51, 85, 0.12);
+}
+
+.summary-symbol {
+    display: grid;
+    place-items: center;
+
+    width: 53px;
+    height: 53px;
+
+    border-radius: 50%;
+
+    font-size: 1.7rem;
+    font-weight: 900;
+}
+
+.summary-card>div {
+    display: grid;
+    gap: 4px;
+}
+
+.summary-card>div>span {
+    color: #68798b;
+    font-size: 0.73rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.summary-card strong {
+    color: #0b2f63;
+    font-size: 1.8rem;
+}
+
+.puzzles-summary .summary-symbol {
+    background: #d8e8ff;
+}
+
+.attempts-summary .summary-symbol {
+    background: #ece1ff;
+}
+
+.correct-summary .summary-symbol {
+    background: #dff3dc;
+    color: #138234;
+}
+
+.accuracy-summary .summary-symbol {
+    background: #ffe8ca;
+    color: #f39a2e;
+}
+
+/*
+====================================================
+PERFORMANCE TABLE
+====================================================
+*/
+
+.teacher-performance-card {
+    min-height: 0;
+
+    border-radius: 15px;
+    overflow: hidden;
+
+    background: #ffffff;
+
+    box-shadow:
+        0 5px 14px rgba(21, 51, 85, 0.12);
+}
+
+.teacher-performance-card>header {
+    padding: 15px 19px;
+
+    background:
+        linear-gradient(145deg,
+            #0b3b70,
+            #082a55);
+
+    color: #ffffff;
+}
+
+.teacher-performance-card h2 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.teacher-performance-card header p {
+    margin: 4px 0 0;
+
+    color: #cbd8e7;
+    font-size: 0.75rem;
+}
+
+.performance-table-header,
+.performance-row {
+    display: grid;
+
+    grid-template-columns:
+        minmax(150px, 1.6fr) 0.65fr 0.6fr 0.8fr 0.75fr 0.9fr 0.65fr;
+}
+
+.performance-table-header {
+    background: #e8eef5;
+    color: #18314e;
+
+    font-size: 0.72rem;
+    font-weight: 900;
+}
+
+.performance-table-header span,
+.performance-row>* {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 48px;
+    padding: 6px;
+
+    border-right: 1px solid #d8e0e9;
+    border-bottom: 1px solid #d8e0e9;
+}
+
+.performance-name-input {
+    width: 100%;
+    height: 100%;
+
+    border: 0;
+    background: transparent;
+
+    text-align: center;
+    font-weight: inherit;
+}
+
+.performance-row {
+    color: #46586a;
+}
+
+.performance-row.active {
+    background: #ffdf75;
+    color: #1a2734;
+    font-weight: 900;
+}
+
+.performance-row.inactive {
+    background: #eeeeee;
+    color: #999999;
+}
+
+.grade-cell {
+    font-weight: 900;
+}
+
+/*
+====================================================
+SESSION DETAILS
+====================================================
+*/
+
+.teacher-detail-grid {
+    display: grid;
+    grid-template-columns:
+        1.4fr 1fr 0.8fr;
+
+    gap: 14px;
+}
+
+.teacher-detail-card {
+    display: grid;
+    gap: 6px;
+
+    padding: 15px;
+
+    border-left: 5px solid #0b6dcf;
+    border-radius: 10px;
+
+    background: #ffffff;
+
+    box-shadow:
+        0 4px 11px rgba(21, 51, 85, 0.1);
+}
+
+.teacher-detail-card span {
+    color: #68798b;
+    font-size: 0.7rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.teacher-detail-card strong {
+    color: #17314f;
+    font-size: 1rem;
+}
+
+/*
+====================================================
+RESPONSIVE
+====================================================
+*/
+
+@media (max-width: 1150px) {
+    .teacher-shell {
+        grid-template-columns: 265px 1fr;
+    }
+
+    .teacher-summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .teacher-button-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .teacher-button {
+        min-height: 50px;
+        flex-direction: row;
+        gap: 8px;
+    }
+
+    .teacher-button span {
+        margin: 0;
+    }
+}
+
+@media (max-width: 850px) {
+    .teacher-shell {
+        grid-template-columns: 1fr;
+    }
+
+    .teacher-control-panel {
+        min-height: auto;
+    }
+
+    .teacher-summary-grid,
+    .teacher-detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .teacher-dashboard-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .teacher-active-player {
+        width: 100%;
+    }
+
+    .teacher-performance-card {
+        overflow-x: auto;
+    }
+
+    .performance-table-header,
+    .performance-row {
+        min-width: 760px;
+    }
+}

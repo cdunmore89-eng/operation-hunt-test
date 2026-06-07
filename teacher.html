@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        Operation Hunt: 2×2 Addition — Teacher Controls
+    </title>
+
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/teacher.css">
+</head>
+
+<body class="teacher-page">
+
+    <main class="teacher-shell">
+
+        <!-- LEFT CONTROL PANEL -->
+        <aside class="teacher-control-panel">
+
+            <header class="teacher-brand">
+
+                <div class="teacher-brand-icon" aria-hidden="true">
+                    🎯
+                </div>
+
+                <div>
+                    <h1>OPERATION HUNT</h1>
+                    <p>2×2 Addition</p>
+                </div>
+
+            </header>
+
+            <!-- SESSION STATUS -->
+            <section class="teacher-status-card">
+
+                <span>
+                    SESSION STATUS
+                </span>
+
+                <strong id="session-status">
+                    WAITING FOR PUZZLE
+                </strong>
+
+            </section>
+
+            <!-- GAME CONTROLS -->
+            <section class="teacher-button-grid">
+
+                <button id="new-puzzle-button" class="teacher-button blue" type="button">
+                    <span aria-hidden="true">✦</span>
+                    New Puzzle
+                </button>
+
+                <button id="reveal-button" class="teacher-button purple" type="button">
+                    <span aria-hidden="true">◉</span>
+                    Reveal Answer
+                </button>
+
+                <button id="previous-player-button" class="teacher-button orange" type="button">
+                    <span aria-hidden="true">←</span>
+                    Previous Player
+                </button>
+
+                <button id="next-player-button" class="teacher-button green" type="button">
+                    <span aria-hidden="true">→</span>
+                    Next Player
+                </button>
+
+                <button id="reset-session-button" class="teacher-button red" type="button">
+                    <span aria-hidden="true">★</span>
+                    Reset Session
+                </button>
+
+                <button id="reset-board-button" class="teacher-button gray" type="button">
+                    <span aria-hidden="true">◌</span>
+                    Reset Board
+                </button>
+
+            </section>
+
+            <!-- GAME SETTINGS -->
+            <section class="teacher-settings-card">
+
+                <h2>
+                    Game Settings
+                </h2>
+
+                <label for="player-count">
+                    Number of Players
+                </label>
+
+                <select id="player-count">
+                    <option value="1">1</option>
+                    <option value="2" selected>2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                </select>
+
+                <label for="minimum-number">
+                    Minimum Number
+                </label>
+
+                <input id="minimum-number" type="number" min="1" value="1">
+
+                <label for="maximum-number">
+                    Maximum Number
+                </label>
+
+                <input id="maximum-number" type="number" min="2" value="20">
+
+            </section>
+
+            <!-- TIMER SETTINGS -->
+            <section id="timer-card" class="teacher-timer-card">
+
+                <div class="teacher-timer-header">
+
+                    <h2>
+                        ⏱ Round Timer
+                    </h2>
+
+                    <label class="timer-switch">
+
+                        <input id="timer-toggle" type="checkbox">
+
+                        <span class="switch-track">
+                            <span class="switch-knob"></span>
+                        </span>
+
+                        <strong id="timer-toggle-label">
+                            OFF
+                        </strong>
+
+                    </label>
+
+                </div>
+
+                <label for="timer-duration">
+                    Duration
+                </label>
+
+                <select id="timer-duration">
+                    <option value="5">5 Seconds</option>
+                    <option value="10">10 Seconds</option>
+                    <option value="15">15 Seconds</option>
+                    <option value="30" selected>30 Seconds</option>
+                    <option value="45">45 Seconds</option>
+                    <option value="60">60 Seconds</option>
+                </select>
+
+                <div class="teacher-timer-display">
+
+                    <strong id="timer-display">
+                        00:30
+                    </strong>
+
+                    <span id="timer-caption">
+                        TIMER OFF
+                    </span>
+
+                </div>
+
+            </section>
+
+        </aside>
+
+        <!-- RIGHT DASHBOARD -->
+        <section class="teacher-dashboard">
+
+            <header class="teacher-dashboard-header">
+
+                <div>
+                    <p>Teacher Dashboard</p>
+
+                    <h2>
+                        Session Overview
+                    </h2>
+                </div>
+
+                <div class="teacher-active-player">
+
+                    <span>
+                        ACTIVE PLAYER
+                    </span>
+
+                    <strong id="active-player-name">
+                        Player 1
+                    </strong>
+
+                </div>
+
+            </header>
+
+            <!-- SESSION SUMMARY -->
+            <section class="teacher-summary-grid">
+
+                <article class="summary-card puzzles-summary">
+
+                    <span class="summary-symbol">
+                        🧩
+                    </span>
+
+                    <div>
+                        <span>Total Puzzles</span>
+                        <strong id="total-puzzles">0</strong>
+                    </div>
+
+                </article>
+
+                <article class="summary-card attempts-summary">
+
+                    <span class="summary-symbol">
+                        🎯
+                    </span>
+
+                    <div>
+                        <span>Total Attempts</span>
+                        <strong id="total-attempts">0</strong>
+                    </div>
+
+                </article>
+
+                <article class="summary-card correct-summary">
+
+                    <span class="summary-symbol">
+                        ✓
+                    </span>
+
+                    <div>
+                        <span>Total Correct</span>
+                        <strong id="total-correct">0</strong>
+                    </div>
+
+                </article>
+
+                <article class="summary-card accuracy-summary">
+
+                    <span class="summary-symbol">
+                        ▥
+                    </span>
+
+                    <div>
+                        <span>Class Accuracy</span>
+                        <strong id="class-accuracy">—</strong>
+                    </div>
+
+                </article>
+
+            </section>
+
+            <!-- STUDENT PERFORMANCE -->
+            <section class="teacher-performance-card">
+
+                <header>
+                    <h2>
+                        Student Performance
+                    </h2>
+
+                    <p>
+                        Live session results
+                    </p>
+                </header>
+
+                <div class="performance-table-header">
+
+                    <span>Student Name</span>
+                    <span>Score</span>
+                    <span>Turn</span>
+                    <span>Attempts</span>
+                    <span>Correct</span>
+                    <span>Percent</span>
+                    <span>Grade</span>
+
+                </div>
+
+                <div id="performance-table"></div>
+
+            </section>
+
+            <!-- SESSION DETAILS -->
+            <section class="teacher-detail-grid">
+
+                <article class="teacher-detail-card">
+
+                    <span>
+                        Current Puzzle
+                    </span>
+
+                    <strong id="current-puzzle-display">
+                        No puzzle generated
+                    </strong>
+
+                </article>
+
+                <article class="teacher-detail-card">
+
+                    <span>
+                        Correct Equation
+                    </span>
+
+                    <strong id="correct-equation-display">
+                        Hidden
+                    </strong>
+
+                </article>
+
+                <article class="teacher-detail-card">
+
+                    <span>
+                        Current Turn
+                    </span>
+
+                    <strong id="current-turn-display">
+                        Player 1
+                    </strong>
+
+                </article>
+
+            </section>
+
+        </section>
+
+    </main>
+
+    <script src="js/shared-state.js"></script>
+    <script src="js/teacher.js"></script>
+
+</body>
+
+</html>
