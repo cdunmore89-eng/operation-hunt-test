@@ -719,3 +719,487 @@ NARROW DISPLAY FALLBACK
         font-size: 0.72rem;
     }
 }
+
+/*
+====================================================
+OPERATION HUNT — TARGET STATES
+====================================================
+*/
+
+.smartboard-puzzle-board .puzzle-cell {
+    position: relative;
+    isolation: isolate;
+
+    overflow: hidden;
+
+    transition:
+        transform 160ms ease,
+        filter 160ms ease,
+        box-shadow 160ms ease,
+        background 200ms ease,
+        opacity 200ms ease;
+}
+
+.smartboard-puzzle-board .puzzle-cell::before,
+.smartboard-puzzle-board .puzzle-cell::after {
+    position: absolute;
+
+    pointer-events: none;
+}
+
+/*
+====================================================
+AVAILABLE TARGET
+====================================================
+*/
+
+.smartboard-puzzle-board .puzzle-cell:not(:disabled):hover {
+    z-index: 2;
+
+    transform:
+        translateY(-3px) scale(1.015);
+
+    filter: brightness(1.06);
+
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.55),
+        0 8px 18px rgba(41, 78, 20, 0.25);
+}
+
+.smartboard-puzzle-board .puzzle-cell:not(:disabled):active {
+    transform:
+        translateY(0) scale(0.985);
+}
+
+/*
+====================================================
+TARGET LOCKED
+====================================================
+*/
+
+.smartboard-puzzle-board .puzzle-cell.target-locked {
+    z-index: 3;
+
+    border:
+        clamp(4px, 0.4vw, 7px) solid #fff0a8;
+
+    background:
+        linear-gradient(145deg,
+            #ffd84d,
+            #f2a900);
+
+    color: #3b2900;
+
+    box-shadow:
+        inset 0 0 0 3px rgba(105, 65, 0, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.75),
+        0 0 0 4px rgba(255, 193, 7, 0.23),
+        0 9px 22px rgba(173, 105, 0, 0.35);
+
+    transform: scale(0.975);
+}
+
+.smartboard-puzzle-board .puzzle-cell.target-locked::after {
+    content: "TARGET LOCKED";
+
+    top:
+        clamp(8px, 1.1vh, 14px);
+
+    left: 50%;
+
+    width: max-content;
+    max-width: 88%;
+
+    padding:
+        clamp(4px, 0.45vw, 7px) clamp(8px, 0.75vw, 13px);
+
+    border-radius: 999px;
+
+    background: rgba(68, 43, 0, 0.88);
+    color: #ffffff;
+
+    font-size:
+        clamp(0.52rem, 0.8vw, 0.88rem);
+
+    font-weight: 1000;
+
+    line-height: 1;
+
+    letter-spacing: 0.06em;
+
+    text-align: center;
+    white-space: nowrap;
+
+    transform: translateX(-50%);
+
+    box-shadow:
+        0 3px 8px rgba(55, 32, 0, 0.3);
+}
+
+/*
+====================================================
+TARGET MATCHED
+====================================================
+*/
+
+.smartboard-puzzle-board .puzzle-cell.target-matched {
+    z-index: 4;
+
+    border:
+        clamp(4px, 0.4vw, 7px) solid #bfffd0;
+
+    background:
+        linear-gradient(145deg,
+            #40d866,
+            #087b31);
+
+    color: #ffffff;
+
+    box-shadow:
+        inset 0 0 0 3px rgba(0, 71, 28, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.65),
+        0 0 0 5px rgba(27, 191, 75, 0.22),
+        0 0 30px rgba(19, 177, 62, 0.55),
+        0 9px 22px rgba(0, 102, 36, 0.34);
+
+    transform: scale(1.025);
+}
+
+.smartboard-puzzle-board .puzzle-cell.target-matched::after {
+    content: "TARGET MATCHED";
+
+    top:
+        clamp(8px, 1.1vh, 14px);
+
+    left: 50%;
+
+    width: max-content;
+    max-width: 90%;
+
+    padding:
+        clamp(4px, 0.45vw, 7px) clamp(8px, 0.75vw, 13px);
+
+    border-radius: 999px;
+
+    background: rgba(0, 72, 27, 0.92);
+    color: #ffffff;
+
+    font-size:
+        clamp(0.5rem, 0.75vw, 0.84rem);
+
+    font-weight: 1000;
+
+    line-height: 1;
+
+    letter-spacing: 0.045em;
+
+    text-align: center;
+    white-space: nowrap;
+
+    transform: translateX(-50%);
+
+    box-shadow:
+        0 3px 8px rgba(0, 54, 20, 0.34);
+}
+
+/*
+====================================================
+STRIKE FEEDBACK
+====================================================
+*/
+
+.smartboard-puzzle-board.strike {
+    animation:
+        operation-hunt-strike-board 380ms ease-out;
+}
+
+.smartboard-puzzle-board.strike .puzzle-cell.target-locked,
+.smartboard-puzzle-board.strike .puzzle-cell.target-matched {
+    animation:
+        operation-hunt-strike-target 420ms ease-out;
+}
+
+.smartboard-status-card.strike {
+    border-color: #fff0a4;
+
+    background:
+        linear-gradient(145deg,
+            #ffcf35,
+            #e89500);
+
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.55),
+        0 0 24px rgba(255, 183, 0, 0.65);
+}
+
+.smartboard-status-card.strike span,
+.smartboard-status-card.strike strong {
+    color: #342000;
+}
+
+/*
+====================================================
+ELIMINATED / STRUCK TARGETS
+====================================================
+*/
+
+.smartboard-puzzle-board:not(.strike) .puzzle-cell.struck {
+    border:
+        clamp(3px, 0.32vw, 5px) solid #8993a0;
+
+    background:
+        linear-gradient(145deg,
+            #b6bec8,
+            #727d8b);
+
+    color: rgba(255, 255, 255, 0.68);
+
+    opacity: 0.64;
+
+    filter: grayscale(0.85);
+
+    box-shadow:
+        inset 0 0 0 3px rgba(45, 54, 65, 0.16),
+        inset 0 1px 0 rgba(255, 255, 255, 0.32);
+
+    cursor: not-allowed;
+
+    transform: scale(0.95);
+}
+
+.smartboard-puzzle-board:not(.strike) .puzzle-cell.struck::before {
+    content: "";
+
+    z-index: 4;
+
+    top: 50%;
+    left: 50%;
+
+    width: 125%;
+    height:
+        clamp(8px, 1.05vw, 15px);
+
+    border-radius: 999px;
+
+    background:
+        linear-gradient(90deg,
+            #8f0707,
+            #ee2828,
+            #8f0707);
+
+    transform:
+        translate(-50%, -50%) rotate(-32deg);
+
+    box-shadow:
+        0 2px 8px rgba(89, 0, 0, 0.42);
+}
+
+.smartboard-puzzle-board:not(.strike) .puzzle-cell.struck::after {
+    content: "ELIMINATED";
+
+    z-index: 5;
+
+    bottom:
+        clamp(8px, 1vh, 13px);
+
+    left: 50%;
+
+    width: max-content;
+
+    padding:
+        clamp(3px, 0.4vw, 6px) clamp(7px, 0.65vw, 11px);
+
+    border-radius: 999px;
+
+    background: rgba(41, 48, 57, 0.9);
+    color: #ffffff;
+
+    font-size:
+        clamp(0.48rem, 0.68vw, 0.75rem);
+
+    font-weight: 1000;
+
+    line-height: 1;
+
+    letter-spacing: 0.07em;
+
+    white-space: nowrap;
+
+    transform: translateX(-50%);
+}
+
+/*
+====================================================
+PUZZLE COMPLETE
+====================================================
+*/
+
+.smartboard-puzzle-board.complete {
+    border-radius: 16px;
+
+    background:
+        radial-gradient(circle at center,
+            rgba(29, 180, 75, 0.12),
+            transparent 66%);
+
+    box-shadow:
+        inset 0 0 0 3px rgba(18, 148, 57, 0.15),
+        0 0 25px rgba(18, 148, 57, 0.16);
+}
+
+.smartboard-status-card.complete {
+    border-color: #9dffb6;
+
+    background:
+        linear-gradient(145deg,
+            #24bd50,
+            #06752b);
+
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        0 0 24px rgba(18, 178, 67, 0.55);
+}
+
+/*
+====================================================
+MISS FEEDBACK
+====================================================
+*/
+
+.smartboard-puzzle-board.wrong {
+    animation:
+        operation-hunt-miss-board 340ms ease-in-out;
+}
+
+.smartboard-puzzle-board.wrong .puzzle-cell {
+    border-color: #ffaaa5;
+
+    background:
+        linear-gradient(145deg,
+            #f2554c,
+            #bd1912);
+
+    color: #ffffff;
+}
+
+/*
+====================================================
+ANIMATIONS
+====================================================
+*/
+
+@keyframes operation-hunt-strike-board {
+    0% {
+        transform: scale(1);
+    }
+
+    45% {
+        transform: scale(1.018);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes operation-hunt-strike-target {
+    0% {
+        transform: scale(0.96);
+    }
+
+    55% {
+        transform: scale(1.055);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes operation-hunt-miss-board {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-8px);
+    }
+
+    50% {
+        transform: translateX(8px);
+    }
+
+    75% {
+        transform: translateX(-4px);
+    }
+}
+
+/*
+====================================================
+REDUCED MOTION
+====================================================
+*/
+
+@media (prefers-reduced-motion: reduce) {
+
+    .smartboard-puzzle-board,
+    .smartboard-puzzle-board .puzzle-cell {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+/*
+====================================================
+SYNCED DEMO ENGINE — DYNAMIC SMART BOARD GRIDS
+====================================================
+*/
+
+.smartboard-puzzle-board.grid-size-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
+.smartboard-puzzle-board.grid-size-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: repeat(3, minmax(0, 1fr));
+}
+
+.smartboard-puzzle-board.grid-size-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-rows: repeat(4, minmax(0, 1fr));
+}
+
+.smartboard-puzzle-board.grid-size-5 {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-rows: repeat(5, minmax(0, 1fr));
+}
+
+.smartboard-puzzle-board.grid-size-3 .puzzle-cell {
+    font-size: clamp(2.7rem, 7vh, 5.7rem);
+}
+
+.smartboard-puzzle-board.grid-size-4 .puzzle-cell {
+    font-size: clamp(2rem, 5.8vh, 4.5rem);
+}
+
+.smartboard-puzzle-board.grid-size-5 .puzzle-cell {
+    font-size: clamp(1.35rem, 4.4vh, 3.25rem);
+}
+
+.smartboard-puzzle-board.grid-size-4 .puzzle-cell.target-locked::after,
+.smartboard-puzzle-board.grid-size-4 .puzzle-cell.target-matched::after,
+.smartboard-puzzle-board.grid-size-5 .puzzle-cell.target-locked::after,
+.smartboard-puzzle-board.grid-size-5 .puzzle-cell.target-matched::after {
+    font-size: clamp(0.42rem, 0.6vw, 0.68rem);
+    padding: 3px 6px;
+}
+
+.smartboard-page.mode-practice .smartboard-scoreboard h2 {
+    background: linear-gradient(135deg, #183b74, #246a92);
+}
+
+.smartboard-page.mode-practice .smartboard-timer {
+    opacity: 0.72;
+}

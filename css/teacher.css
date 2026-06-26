@@ -630,3 +630,133 @@ RESPONSIVE
         min-width: 760px;
     }
 }
+
+/*
+====================================================
+GAME MODE SELECTOR
+====================================================
+*/
+
+.teacher-mode-control {
+    display: grid;
+    gap: 0.45rem;
+
+    margin-bottom: 0.65rem;
+    padding: 0.8rem;
+
+    border: 1px solid #334a60;
+    border-radius: 0.7rem;
+
+    background:
+        linear-gradient(
+            145deg,
+            #172434,
+            #0b131d
+        );
+
+    transition:
+        border-color 180ms ease,
+        background 180ms ease,
+        box-shadow 180ms ease;
+}
+
+.teacher-mode-control label {
+    margin: 0;
+}
+
+.teacher-mode-control select {
+    width: 100%;
+    min-height: 2.65rem;
+
+    border: 2px solid #2684ff;
+    border-radius: 0.55rem;
+
+    background: #ffffff;
+    color: #101820;
+
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 900;
+
+    cursor: pointer;
+}
+
+.teacher-mode-control select:focus-visible {
+    outline: 3px solid rgba(38, 132, 255, 0.3);
+    outline-offset: 2px;
+}
+
+.teacher-mode-control p {
+    margin: 0;
+
+    color: #aebdcb;
+
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.teacher-page.mode-max-out .teacher-mode-control {
+    border-color: #f0b429;
+
+    background:
+        linear-gradient(
+            145deg,
+            #2d240d,
+            #141006
+        );
+
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        0 0 0 1px rgba(240, 180, 41, 0.08);
+}
+
+.teacher-page.mode-max-out .teacher-mode-control select {
+    border-color: #f0b429;
+}
+
+.teacher-page.mode-max-out .teacher-mode-control select:focus-visible {
+    outline-color: rgba(240, 180, 41, 0.32);
+}
+
+.teacher-page.mode-max-out .teacher-brand p {
+    color: #f0b429;
+}
+
+/*
+====================================================
+SYNCED DEMO ENGINE — TEACHER SETTINGS ADDITIONS
+====================================================
+*/
+
+.teacher-checkbox-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    min-height: 42px;
+    padding: 10px 12px;
+
+    border: 1px solid rgba(180, 232, 255, 0.22);
+    border-radius: 12px;
+
+    background: rgba(255, 255, 255, 0.08);
+    color: #e6f7ff;
+
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.teacher-checkbox-control input {
+    width: 18px;
+    height: 18px;
+    accent-color: #65e88b;
+}
+
+.teacher-page.mode-practice .teacher-timer-card {
+    opacity: 0.72;
+}
+
+.teacher-page.mode-practice .teacher-active-player span {
+    color: #8ddfff;
+}

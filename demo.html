@@ -2,260 +2,311 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Operation Hunt: Demo Mode</title>
 
-    <title>Operation Hunt: 2×2 Addition</title>
-
-    <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/demo.css">
 </head>
 
-<body>
-    <main class="game-shell">
-
-        <!-- TEACHER CONTROLS -->
-        <aside class="control-panel">
-
-            <header class="brand">
-                <h1>OPERATION<br>HUNT</h1>
-                <p class="subtitle">2×2 Addition</p>
-            </header>
-
-            <section class="status-card">
-                <span>SESSION STATUS</span>
-
-                <strong id="session-status">
-                    WAITING FOR PUZZLE
-                </strong>
-            </section>
-
-            <div class="control-buttons">
-
-                <button id="new-puzzle-button" class="control-button blue" type="button">
-                    New Puzzle
-                </button>
-
-                <button id="reveal-button" class="control-button purple" type="button">
-                    Reveal Answer
-                </button>
-
-                <button id="previous-player-button" class="control-button orange" type="button">
-                    Previous Player
-                </button>
-
-                <button id="next-player-button" class="control-button green" type="button">
-                    Next Player
-                </button>
-
-                <button id="reset-session-button" class="control-button red" type="button">
-                    Reset Session
-                </button>
-
-                <button id="reset-board-button" class="control-button gray" type="button">
-                    Reset Board
-                </button>
-
-            </div>
-
-            <section class="settings-panel">
-                <h2>Game Settings</h2>
-
-                <label for="player-count">
-                    Players
-                </label>
-
-                <select id="player-count">
-                    <option value="1">1</option>
-                    <option value="2" selected>2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                    <option value="6">6</option>
-                </select>
-
-                <label for="minimum-number">
-                    Minimum Number
-                </label>
-
-                <input id="minimum-number" type="number" min="1" value="1">
-
-                <label for="maximum-number">
-                    Maximum Number
-                </label>
-
-                <input id="maximum-number" type="number" min="2" value="20">
-            </section>
-
-        </aside>
-
-        <!-- MAIN GAME DISPLAY -->
-        <section class="game-display">
-
-            <header class="game-header">
-
-                <p class="instructions">
-                    Find two numbers that add to another number
-                </p>
-
-                <div class="active-player-card">
-                    <span>ACTIVE PLAYER</span>
-
-                    <strong id="active-player-name">
-                        Player 1
-                    </strong>
-                </div>
-
-            </header>
-
-            <section class="main-game-area">
-
-                <!-- SCOREBOARD AND TIMER -->
-                <div class="left-game-column">
-
-                    <section class="scoreboard-card">
-
-                        <h2>Score Card</h2>
-
-                        <div class="scoreboard-header">
-                            <span>Player</span>
-                            <span>Score</span>
-                            <span>Turn</span>
-                        </div>
-
-                        <div id="scoreboard"></div>
-
-                    </section>
-
-                    <!-- ROUND TIMER -->
-                    <section id="timer-card" class="timer-card timer-disabled">
-
-                        <div class="timer-header">
-                            <h2>⏱ Round Timer</h2>
-
-                            <label class="timer-switch">
-                                <input id="timer-toggle" type="checkbox">
-
-                                <span class="switch-track">
-                                    <span class="switch-knob"></span>
-                                </span>
-
-                                <strong id="timer-toggle-label">
-                                    OFF
-                                </strong>
-                            </label>
-                        </div>
-
-                        <div class="timer-settings-row">
-                            <label for="timer-duration">
-                                Duration
-                            </label>
-
-                            <select id="timer-duration">
-                                <option value="5">5 Seconds</option>
-                                <option value="10">10 Seconds</option>
-                                <option value="15">15 Seconds</option>
-                                <option value="30" selected>30 Seconds</option>
-                                <option value="45">45 Seconds</option>
-                                <option value="60">60 Seconds</option>
-                            </select>
-                        </div>
-
-                        <div id="timer-ring" class="timer-ring">
-                            <div class="timer-ring-center">
-                                <span class="timer-clock-icon">◷</span>
-
-                                <strong id="timer-display">
-                                    00:30
-                                </strong>
-
-                                <span id="timer-caption">
-                                    TIMER OFF
-                                </span>
-                            </div>
-                        </div>
-
-                    </section>
-
-                </div>
-
-                <!-- PUZZLE -->
-                <section class="puzzle-section">
-
-                    <div id="puzzle-board" class="puzzle-board">
-
-                        <button class="puzzle-cell" data-index="0" type="button"
-                            aria-label="Top-left puzzle number"></button>
-
-                        <button class="puzzle-cell" data-index="1" type="button"
-                            aria-label="Top-right puzzle number"></button>
-
-                        <button class="puzzle-cell" data-index="2" type="button"
-                            aria-label="Bottom-left puzzle number"></button>
-
-                        <button class="puzzle-cell" data-index="3" type="button"
-                            aria-label="Bottom-right puzzle number"></button>
-
-                    </div>
-
-                    <div class="equation-card">
-                        <span>EQUATION</span>
-
-                        <strong id="equation-display">
-                            Hidden
-                        </strong>
-                    </div>
-
-                </section>
-
-            </section>
-
-            <!-- SESSION SUMMARY -->
-            <section class="session-summary">
-
-                <article>
-                    <span class="summary-icon puzzle-icon">🧩</span>
-
-                    <div>
-                        <span>Puzzles</span>
-                        <strong id="total-puzzles">0</strong>
-                    </div>
-                </article>
-
-                <article>
-                    <span class="summary-icon attempts-icon">🎯</span>
-
-                    <div>
-                        <span>Attempts</span>
-                        <strong id="total-attempts">0</strong>
-                    </div>
-                </article>
-
-                <article>
-                    <span class="summary-icon correct-icon">✓</span>
-
-                    <div>
-                        <span>Correct</span>
-                        <strong id="total-correct">0</strong>
-                    </div>
-                </article>
-
-                <article>
-                    <span class="summary-icon accuracy-icon">▥</span>
-
-                    <div>
-                        <span>Accuracy</span>
-                        <strong id="class-accuracy">—</strong>
-                    </div>
-                </article>
-
-            </section>
-
+<body class="demo-page mode-classic">
+
+  <main class="demo-shell">
+
+    <!-- TOP MISSION BAR -->
+    <header class="demo-topbar">
+
+      <section class="demo-brand-card">
+        <div class="demo-brand-icon" aria-hidden="true">🎯</div>
+
+        <div class="demo-brand-copy">
+          <span>OPERATION</span>
+          <strong>HUNT</strong>
+          <small>Demo Mode</small>
+        </div>
+      </section>
+
+      <section class="demo-objective-card">
+        <span class="demo-objective-icon" aria-hidden="true">💡</span>
+
+        <div>
+          <h1>Agent Training Console</h1>
+          <p id="game-instructions">
+            Find two numbers that add to another number on the radar and strike the target.
+          </p>
+        </div>
+      </section>
+
+      <section class="demo-active-card">
+        <span id="active-player-label">ACTIVE AGENT</span>
+        <strong id="active-player-name">Player 1</strong>
+      </section>
+
+      <section class="status-card demo-status-card">
+        <span>SESSION STATUS</span>
+        <strong id="session-status">WAITING FOR PUZZLE</strong>
+      </section>
+
+    </header>
+
+    <!-- MAIN DASHBOARD -->
+    <section class="demo-dashboard-grid">
+
+      <!-- LEFT: TEACHER CONTROLS -->
+      <aside class="demo-control-panel">
+
+        <section class="demo-panel demo-controls-card">
+          <header>
+            <span aria-hidden="true">🎛️</span>
+            <h2>Mission Controls</h2>
+          </header>
+
+          <div class="demo-button-grid">
+            <button id="new-puzzle-button" class="demo-button demo-blue" type="button">
+              <span>✦</span>
+              <strong>New Puzzle</strong>
+            </button>
+
+            <button id="reveal-button" class="demo-button demo-purple" type="button">
+              <span>◉</span>
+              <strong>Reveal</strong>
+            </button>
+
+            <button id="previous-player-button" class="demo-button demo-orange" type="button">
+              <span>←</span>
+              <strong>Previous</strong>
+            </button>
+
+            <button id="next-player-button" class="demo-button demo-green" type="button">
+              <span>→</span>
+              <strong>Next</strong>
+            </button>
+
+            <button id="reset-session-button" class="demo-button demo-red" type="button">
+              <span>★</span>
+              <strong>Reset Session</strong>
+            </button>
+
+            <button id="reset-board-button" class="demo-button demo-gray" type="button">
+              <span>◌</span>
+              <strong>Reset Board</strong>
+            </button>
+          </div>
         </section>
 
-    </main>
+        <section class="demo-panel demo-settings-panel">
+          <h2>Mission Setup</h2>
 
-    <script src="js/game-engine.js"></script>
+          <label for="game-mode">Game Mode</label>
+          <select id="game-mode">
+            <option value="CLASSIC">Classic Hunt</option>
+            <option value="MAX_OUT">Max Out Challenge</option>
+            <option value="PRACTICE">Practice Mode</option>
+          </select>
+
+          <p id="game-mode-description">Complete one target equation per puzzle.</p>
+
+          <div class="demo-settings-row">
+            <label class="setting-player-count">
+              <span>Agents</span>
+              <select id="player-count">
+                <option value="1">1</option>
+                <option value="2" selected>2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+              </select>
+            </label>
+
+            <label class="setting-grid-size">
+              <span>Grid</span>
+              <select id="grid-size">
+                <option value="2" selected>2×2</option>
+                <option value="3">3×3</option>
+                <option value="4">4×4</option>
+                <option value="5">5×5</option>
+              </select>
+            </label>
+
+            <label class="setting-required-addends">
+              <span>Terms</span>
+              <select id="required-addends">
+                <option value="2" selected>2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+              </select>
+            </label>
+
+            <label class="setting-minimum-number">
+              <span>Min</span>
+              <input id="minimum-number" type="number" min="1" value="1">
+            </label>
+
+            <label class="setting-maximum-number">
+              <span>Max</span>
+              <input id="maximum-number" type="number" min="2" value="20">
+            </label>
+          </div>
+        </section>
+
+        <section id="timer-card" class="demo-panel demo-timer-card timer-disabled">
+          <div class="timer-header">
+            <h2>⏱ Round Timer</h2>
+
+            <label class="timer-switch">
+              <input id="timer-toggle" type="checkbox">
+              <span class="switch-track" aria-hidden="true">
+                <span class="switch-knob"></span>
+              </span>
+              <strong id="timer-toggle-label">OFF</strong>
+            </label>
+          </div>
+
+          <label class="demo-duration-control" for="timer-duration">Duration</label>
+          <select id="timer-duration">
+            <option value="5">5 Seconds</option>
+            <option value="10">10 Seconds</option>
+            <option value="15">15 Seconds</option>
+            <option value="30" selected>30 Seconds</option>
+            <option value="45">45 Seconds</option>
+            <option value="60">60 Seconds</option>
+          </select>
+
+          <div id="timer-ring" class="timer-ring">
+            <div class="timer-ring-center">
+              <span class="timer-clock-icon" aria-hidden="true">◷</span>
+              <strong id="timer-display">00:30</strong>
+              <span id="timer-caption">TIMER OFF</span>
+            </div>
+          </div>
+        </section>
+
+      </aside>
+
+      <!-- CENTER: STUDENT DISPLAY PREVIEW -->
+      <section class="demo-play-panel">
+
+        <section class="demo-radar-card">
+          <div class="demo-radar-header">
+            <div>
+              <span>STUDENT DISPLAY PREVIEW</span>
+              <strong>Target Board</strong>
+            </div>
+
+            <div class="demo-radar-chip">
+              <span>MODE</span>
+              <b class="demo-footer-mode-label">Classic Hunt Training Active</b>
+            </div>
+          </div>
+
+          <div id="puzzle-board" class="puzzle-board demo-puzzle-board grid-size-2" aria-label="Operation Hunt puzzle board"></div>
+        </section>
+
+        <section class="demo-equation-card">
+          <span>EQUATION</span>
+          <strong id="equation-display">Hidden</strong>
+
+          <label class="running-sum-toggle" for="running-sum-toggle">
+            <input id="running-sum-toggle" type="checkbox">
+            <span aria-hidden="true"></span>
+            <b>Show Running Sum</b>
+          </label>
+        </section>
+
+        <section class="demo-feedback-strip">
+          <article>
+            <span>TARGET LOCKED</span>
+            <small>selected numbers glow yellow</small>
+          </article>
+
+          <article>
+            <span>TARGET MATCHED</span>
+            <small>answer tile flashes green</small>
+          </article>
+
+          <article>
+            <span>MISS</span>
+            <small>wrong pair buzzes red</small>
+          </article>
+        </section>
+
+      </section>
+
+      <!-- RIGHT: LEADERBOARD / ANALYTICS -->
+      <aside class="demo-data-panel">
+
+        <section class="demo-panel demo-leaderboard-panel scoreboard-card">
+          <h2>
+            <span aria-hidden="true">🏆</span>
+            Score Card
+          </h2>
+
+          <div class="scoreboard-header">
+            <span>Player</span>
+            <span>Score</span>
+            <span>Turn</span>
+          </div>
+
+          <div id="scoreboard"></div>
+        </section>
+
+        <section class="demo-panel demo-progress-panel">
+          <h2>Session Intel</h2>
+
+          <div class="demo-intel-grid">
+            <article>
+              <span class="summary-icon puzzle-icon">🧩</span>
+              <div>
+                <small>Puzzles</small>
+                <strong id="total-puzzles">0</strong>
+              </div>
+            </article>
+
+            <article>
+              <span class="summary-icon attempts-icon">🎯</span>
+              <div>
+                <small>Attempts</small>
+                <strong id="total-attempts">0</strong>
+              </div>
+            </article>
+
+            <article>
+              <span class="summary-icon correct-icon">✓</span>
+              <div>
+                <small>Strikes</small>
+                <strong id="total-correct">0</strong>
+              </div>
+            </article>
+
+            <article>
+              <span class="summary-icon accuracy-icon">▥</span>
+              <div>
+                <small>Accuracy</small>
+                <strong id="class-accuracy">—</strong>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="demo-panel demo-note-panel">
+          <h2>Demo Notes</h2>
+          <p>
+            This screen combines teacher controls and the student display preview for presentations.
+          </p>
+        </section>
+
+      </aside>
+
+    </section>
+
+  </main>
+
+  <script src="js/puzzle-engine.js"></script>
+  <script src="js/demo.js"></script>
+
 </body>
 
 </html>
