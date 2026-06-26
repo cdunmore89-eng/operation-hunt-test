@@ -1256,3 +1256,388 @@ PRACTICE MODE — NO PLAYERS, NO TIMER
     border-top: 2px solid rgba(7, 83, 38, 0.18);
   }
 }
+
+/*
+====================================================
+MOBILE DEMO LAYOUT PASS
+Keeps desktop dashboard intact while making Demo Mode
+usable on phones and small tablets.
+====================================================
+*/
+
+@media (max-width: 860px) {
+  .demo-page {
+    width: 100%;
+    min-height: 100dvh;
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .demo-shell {
+    width: 100%;
+    min-height: 100dvh;
+    height: auto;
+    grid-template-rows: auto auto;
+    overflow: visible;
+  }
+
+  .demo-topbar {
+    grid-template-columns: 1fr;
+    border-bottom-width: 3px;
+  }
+
+  .demo-brand-card,
+  .demo-objective-card,
+  .demo-active-card,
+  .demo-status-card {
+    border-right: 0;
+  }
+
+  .demo-brand-card {
+    padding: 12px 16px;
+    justify-content: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+  }
+
+  .demo-brand-icon {
+    width: 54px;
+    height: 54px;
+    font-size: 1.85rem;
+  }
+
+  .demo-brand-copy span {
+    font-size: 1.05rem;
+  }
+
+  .demo-brand-copy strong {
+    font-size: 1.55rem;
+  }
+
+  .demo-brand-copy small {
+    font-size: 0.76rem;
+  }
+
+  .demo-objective-card {
+    padding: 10px 16px 12px;
+    align-items: flex-start;
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .demo-objective-icon {
+    font-size: 1.55rem;
+  }
+
+  .demo-objective-card h1 {
+    font-size: 1rem;
+  }
+
+  .demo-objective-card p {
+    font-size: 0.82rem;
+    line-height: 1.25;
+  }
+
+  .demo-active-card,
+  .demo-status-card {
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .demo-active-card {
+    padding: 10px 16px;
+  }
+
+  .demo-status-card {
+    padding: 10px 16px 12px;
+  }
+
+  .demo-active-card strong,
+  .demo-status-card strong {
+    font-size: 1.1rem;
+    white-space: normal;
+  }
+
+  .demo-dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+    width: 100%;
+    min-height: auto;
+    padding: 14px;
+    overflow: visible;
+  }
+
+  .demo-play-panel {
+    order: 1;
+    display: grid;
+    grid-template-rows: auto auto auto;
+    gap: 12px;
+    min-height: auto;
+    overflow: visible;
+  }
+
+  .demo-control-panel {
+    order: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow: visible;
+  }
+
+  .demo-data-panel {
+    order: 3;
+    display: grid;
+    gap: 12px;
+    overflow: visible;
+  }
+
+  .demo-settings-panel {
+    order: 1;
+  }
+
+  .demo-controls-card {
+    order: 2;
+  }
+
+  .demo-timer-card {
+    order: 3;
+  }
+
+  .demo-panel {
+    border-radius: 16px;
+  }
+
+  .demo-controls-card .demo-button-grid {
+    max-height: none;
+    overflow: visible;
+    padding: 12px;
+  }
+
+  .demo-button-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .demo-button {
+    min-height: 58px;
+    touch-action: manipulation;
+  }
+
+  .demo-button strong {
+    font-size: 0.76rem;
+  }
+
+  .demo-settings-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .mode-practice .demo-settings-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .demo-settings-panel select,
+  .demo-settings-panel input,
+  .demo-timer-card select {
+    min-height: 42px;
+    font-size: 1rem;
+  }
+
+  .demo-radar-card {
+    grid-template-rows: auto auto;
+    min-height: auto;
+    padding: 12px;
+    border-radius: 18px;
+  }
+
+  .demo-radar-header {
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .demo-radar-header strong {
+    font-size: 1.45rem;
+  }
+
+  .demo-radar-chip {
+    min-width: 128px;
+    padding: 7px 8px;
+  }
+
+  .demo-radar-chip b {
+    font-size: 0.68rem;
+  }
+
+  .demo-puzzle-board {
+    width: 100%;
+    max-width: calc(100vw - 52px);
+    aspect-ratio: 1 / 1;
+    justify-self: center;
+    gap: clamp(4px, 1.6vw, 8px);
+    padding: clamp(6px, 2vw, 10px);
+    overflow: visible;
+  }
+
+  .demo-puzzle-board.grid-size-2 {
+    --cell-font-size: clamp(3.8rem, 22vw, 7.5rem);
+    --cell-label-offset: 27vw;
+  }
+
+  .demo-puzzle-board.grid-size-3 {
+    --cell-font-size: clamp(2.5rem, 14vw, 4.6rem);
+    --cell-label-offset: 17vw;
+  }
+
+  .demo-puzzle-board.grid-size-4 {
+    --cell-font-size: clamp(1.75rem, 9.8vw, 3rem);
+    --cell-label-offset: 11.5vw;
+  }
+
+  .demo-puzzle-board.grid-size-5 {
+    --cell-font-size: clamp(1.25rem, 7.4vw, 2.15rem);
+    --cell-label-offset: 8.2vw;
+  }
+
+  .demo-puzzle-board .puzzle-cell {
+    border-radius: clamp(8px, 2.4vw, 12px);
+    font-size: var(--cell-font-size, 3rem);
+  }
+
+  .demo-puzzle-board .puzzle-cell.selected::after,
+  .demo-puzzle-board .puzzle-cell.target-locked::after {
+    content: "LOCKED";
+    margin-top: min(var(--cell-label-offset, 12vw), 58px);
+    padding: 3px 6px;
+    font-size: clamp(0.46rem, 1.9vw, 0.68rem);
+  }
+
+  .demo-puzzle-board .puzzle-cell.correct::after,
+  .demo-puzzle-board .puzzle-cell.target-matched::after {
+    content: "MATCHED";
+    margin-top: min(var(--cell-label-offset, 12vw), 58px);
+    padding: 3px 6px;
+    font-size: clamp(0.46rem, 1.9vw, 0.68rem);
+  }
+
+  .demo-puzzle-board.grid-size-5 .puzzle-cell.selected::after,
+  .demo-puzzle-board.grid-size-5 .puzzle-cell.target-locked::after,
+  .demo-puzzle-board.grid-size-5 .puzzle-cell.correct::after,
+  .demo-puzzle-board.grid-size-5 .puzzle-cell.target-matched::after {
+    padding: 2px 4px;
+    font-size: clamp(0.38rem, 1.55vw, 0.52rem);
+    letter-spacing: 0.02em;
+  }
+
+  .demo-equation-card {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    border-width: 2px;
+  }
+
+  .demo-equation-card > span {
+    min-height: 34px;
+    font-size: 0.78rem;
+  }
+
+  .demo-equation-card > strong {
+    min-height: 64px;
+    padding: 8px;
+    font-size: clamp(1.55rem, 8vw, 2.6rem);
+    line-height: 1.1;
+    overflow-wrap: anywhere;
+  }
+
+  .running-sum-toggle {
+    min-height: 46px;
+    border-left: 0;
+    border-top: 2px solid rgba(7, 83, 38, 0.18);
+  }
+
+  .running-sum-toggle b {
+    font-size: 0.76rem;
+  }
+
+  .demo-feedback-strip {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .demo-feedback-strip article {
+    padding: 9px 10px;
+  }
+
+  .demo-feedback-strip small {
+    display: none;
+  }
+
+  .timer-ring {
+    width: 124px;
+    height: 124px;
+    min-width: 124px;
+    min-height: 124px;
+  }
+
+  .demo-intel-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .demo-note-panel {
+    margin-bottom: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .demo-dashboard-grid {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .demo-radar-card,
+  .demo-settings-panel,
+  .demo-timer-card,
+  .demo-progress-panel,
+  .demo-note-panel {
+    padding: 10px;
+  }
+
+  .demo-radar-header {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .demo-radar-chip {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .demo-puzzle-board {
+    max-width: calc(100vw - 36px);
+  }
+
+  .demo-button-grid,
+  .demo-settings-row,
+  .mode-practice .demo-settings-row,
+  .demo-intel-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .demo-button {
+    min-height: 54px;
+  }
+
+  .scoreboard-header,
+  .player-row,
+  .demo-page .demo-leaderboard-panel.scoreboard-card .scoreboard-header,
+  .demo-page .demo-leaderboard-panel.scoreboard-card #scoreboard .player-row {
+    grid-template-columns: minmax(0, 1fr) 58px 48px !important;
+  }
+
+  .demo-page .demo-leaderboard-panel.scoreboard-card .scoreboard-header span,
+  .demo-page .demo-leaderboard-panel.scoreboard-card #scoreboard .player-row > span,
+  .demo-page .demo-leaderboard-panel.scoreboard-card #scoreboard .player-name-input {
+    min-height: 36px;
+    font-size: 0.82rem !important;
+  }
+}
