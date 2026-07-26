@@ -1,0 +1,242 @@
+/*
+====================================================
+OPERATION HUNT — EQUATION + FEEDBACK SYSTEM
+Visual adapter for the approved Demo page.
+No gameplay, scoring, or answer logic lives here.
+====================================================
+*/
+
+.demo-equation-card {
+  border-color: var(--oh-navy-900);
+  border-radius: var(--oh-radius-md);
+  box-shadow: var(--oh-shadow-sm);
+  transition:
+    border-color var(--oh-duration-normal) var(--oh-ease-standard),
+    box-shadow var(--oh-duration-normal) var(--oh-ease-standard),
+    background var(--oh-duration-normal) var(--oh-ease-standard);
+}
+
+.demo-equation-card > span {
+  background: var(--oh-navy-900);
+  color: var(--oh-white);
+  font-size: var(--oh-text-sm);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition:
+    background var(--oh-duration-normal) var(--oh-ease-standard),
+    color var(--oh-duration-normal) var(--oh-ease-standard);
+}
+
+.demo-equation-card > strong {
+  padding: var(--oh-space-3) var(--oh-space-4);
+  color: var(--oh-gray-950);
+  font-family: var(--oh-font-display);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.08;
+  overflow-wrap: anywhere;
+  transition:
+    color var(--oh-duration-normal) var(--oh-ease-standard),
+    transform var(--oh-duration-fast) var(--oh-ease-pop);
+}
+
+.demo-equation-card.feedback-locked {
+  border-color: var(--oh-yellow-500);
+  background: var(--oh-yellow-100);
+  box-shadow: 0 0 0 4px rgba(230, 167, 0, 0.16), var(--oh-shadow-sm);
+}
+
+.demo-equation-card.feedback-locked > span {
+  background: #8a6100;
+}
+
+.demo-equation-card.feedback-matched {
+  border-color: var(--oh-green-600);
+  background: var(--oh-green-100);
+  box-shadow: 0 0 0 4px rgba(19, 138, 75, 0.16), var(--oh-shadow-sm);
+}
+
+.demo-equation-card.feedback-matched > span {
+  background: var(--oh-green-600);
+}
+
+.demo-equation-card.feedback-matched > strong {
+  color: #075f34;
+  animation: oh-pop 320ms var(--oh-ease-pop);
+}
+
+.demo-equation-card.feedback-miss {
+  border-color: var(--oh-red-600);
+  background: var(--oh-red-100);
+  box-shadow: 0 0 0 4px rgba(201, 54, 54, 0.16), var(--oh-shadow-sm);
+}
+
+.demo-equation-card.feedback-miss > span {
+  background: var(--oh-red-600);
+}
+
+.demo-equation-card.feedback-miss > strong {
+  color: #8d1f1f;
+  animation: oh-shake 280ms var(--oh-ease-standard);
+}
+
+.running-sum-toggle {
+  border-left-color: var(--oh-gray-200);
+  background: var(--oh-gray-50);
+  color: var(--oh-gray-700);
+  transition:
+    background var(--oh-duration-fast) var(--oh-ease-standard),
+    color var(--oh-duration-fast) var(--oh-ease-standard),
+    box-shadow var(--oh-duration-fast) var(--oh-ease-standard);
+  touch-action: manipulation;
+}
+
+.running-sum-toggle:hover {
+  background: var(--oh-blue-100);
+  color: var(--oh-navy-900);
+}
+
+.running-sum-toggle:focus-within {
+  position: relative;
+  z-index: 1;
+  outline: 3px solid var(--oh-blue-100);
+  outline-offset: -3px;
+  box-shadow: inset 0 0 0 2px var(--oh-blue-600);
+}
+
+.running-sum-toggle span {
+  width: 24px;
+  height: 24px;
+  border-color: var(--oh-blue-600);
+  border-radius: 7px;
+  transition:
+    transform var(--oh-duration-fast) var(--oh-ease-pop),
+    background var(--oh-duration-fast) var(--oh-ease-standard),
+    border-color var(--oh-duration-fast) var(--oh-ease-standard);
+}
+
+.running-sum-toggle input:checked + span {
+  border-color: var(--oh-green-600);
+  background: var(--oh-green-600);
+  transform: scale(1.05);
+}
+
+.running-sum-toggle input:disabled + span,
+.running-sum-toggle:has(input:disabled) {
+  cursor: not-allowed;
+  filter: grayscale(0.4);
+  opacity: 0.62;
+}
+
+.demo-feedback-strip article {
+  position: relative;
+  overflow: hidden;
+  min-height: 66px;
+  padding: var(--oh-space-3);
+  border: 2px solid var(--oh-gray-200);
+  border-radius: var(--oh-radius-md);
+  background: var(--oh-white);
+  box-shadow: var(--oh-shadow-sm);
+  transition:
+    transform var(--oh-duration-fast) var(--oh-ease-pop),
+    border-color var(--oh-duration-normal) var(--oh-ease-standard),
+    background var(--oh-duration-normal) var(--oh-ease-standard),
+    box-shadow var(--oh-duration-normal) var(--oh-ease-standard),
+    opacity var(--oh-duration-normal) var(--oh-ease-standard);
+}
+
+.demo-feedback-strip article::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  background: var(--feedback-accent, var(--oh-gray-300));
+}
+
+.demo-feedback-strip article[data-feedback="locked"] {
+  --feedback-accent: var(--oh-yellow-500);
+}
+
+.demo-feedback-strip article[data-feedback="matched"] {
+  --feedback-accent: var(--oh-green-600);
+}
+
+.demo-feedback-strip article[data-feedback="miss"] {
+  --feedback-accent: var(--oh-red-600);
+}
+
+.demo-feedback-strip article[data-feedback="locked"] span {
+  color: #8a6100;
+}
+
+.demo-feedback-strip article[data-feedback="matched"] span {
+  color: var(--oh-green-600);
+}
+
+.demo-feedback-strip article[data-feedback="miss"] span {
+  color: var(--oh-red-600);
+}
+
+.demo-feedback-strip article.is-active {
+  transform: translateY(-2px) scale(1.015);
+  border-color: var(--feedback-accent);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.16);
+}
+
+.demo-feedback-strip article[data-feedback="locked"].is-active {
+  background: var(--oh-yellow-100);
+}
+
+.demo-feedback-strip article[data-feedback="matched"].is-active {
+  background: var(--oh-green-100);
+}
+
+.demo-feedback-strip article[data-feedback="miss"].is-active {
+  background: var(--oh-red-100);
+  animation: oh-shake 280ms var(--oh-ease-standard);
+}
+
+.demo-feedback-strip.has-active article:not(.is-active) {
+  opacity: 0.58;
+}
+
+.demo-feedback-strip span {
+  font-size: var(--oh-text-sm);
+  letter-spacing: 0.03em;
+}
+
+.demo-feedback-strip small {
+  display: block;
+  margin-top: var(--oh-space-1);
+  color: var(--oh-gray-500);
+  line-height: 1.25;
+}
+
+@media (max-width: 860px), (pointer: coarse) {
+  .running-sum-toggle {
+    min-height: var(--oh-touch-min);
+  }
+}
+
+@media (max-width: 640px) {
+  .demo-equation-card {
+    grid-template-columns: 1fr;
+  }
+
+  .demo-equation-card > span {
+    min-height: 36px;
+  }
+
+  .running-sum-toggle {
+    border-top: 1px solid var(--oh-gray-200);
+    border-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .demo-equation-card.feedback-matched > strong,
+  .demo-equation-card.feedback-miss > strong,
+  .demo-feedback-strip article[data-feedback="miss"].is-active {
+    animation: none;
+  }
+}
