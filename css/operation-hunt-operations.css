@@ -1,0 +1,101 @@
+/*
+====================================================
+OPERATION HUNT — OPERATION SELECTOR
+Addition remains the reference theme. Subtraction receives
+its own accent while sharing every approved component.
+====================================================
+*/
+
+.operation-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--oh-space-3);
+  margin-bottom: var(--oh-space-2);
+}
+
+.operation-field {
+  display: grid;
+  gap: var(--oh-space-2);
+  min-width: 0;
+  color: var(--oh-gray-700);
+  font-size: var(--oh-text-xs);
+  font-weight: 900;
+  letter-spacing: 0.01em;
+}
+
+.operation-field select {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 var(--oh-space-3);
+  border: 1px solid var(--oh-gray-300);
+  border-radius: var(--oh-radius-sm);
+  background: var(--oh-white);
+  color: var(--oh-gray-950);
+  font: inherit;
+  transition:
+    border-color var(--oh-duration-fast) var(--oh-ease-standard),
+    box-shadow var(--oh-duration-fast) var(--oh-ease-standard),
+    background var(--oh-duration-fast) var(--oh-ease-standard);
+}
+
+.operation-field select:hover {
+  border-color: var(--oh-blue-600);
+}
+
+.operation-field select:focus-visible {
+  border-color: var(--oh-blue-600);
+  outline: 3px solid var(--oh-blue-100);
+  outline-offset: 1px;
+}
+
+.operation-subtraction .demo-radar-chip {
+  background: #f4efff;
+}
+
+.operation-subtraction .demo-radar-chip b,
+.operation-subtraction .demo-brand-copy small {
+  color: #c9b7ff;
+}
+
+.operation-subtraction .demo-objective-card {
+  background: rgba(112, 72, 215, 0.08);
+}
+
+.operation-subtraction .demo-equation-card {
+  border-color: var(--oh-purple-600);
+}
+
+.operation-subtraction .demo-equation-card > span {
+  background: linear-gradient(145deg, #7048d7, #4d2fa8);
+}
+
+.operation-subtraction .running-sum-toggle {
+  border-color: rgba(112, 72, 215, 0.22);
+  background: linear-gradient(180deg, #fbf9ff, #f2edff);
+  color: #4d2fa8;
+}
+
+.operation-subtraction .running-sum-toggle span {
+  border-color: var(--oh-purple-600);
+}
+
+.operation-subtraction .running-sum-toggle input:checked + span {
+  border-color: #4d2fa8;
+  background: linear-gradient(145deg, #805ce0, #5835b9);
+}
+
+.operation-subtraction .running-sum-toggle input:focus-visible + span {
+  outline-color: #d9cdfb;
+}
+
+@media (max-width: 860px) {
+  .operation-mode-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .operation-field select {
+    min-height: 44px;
+    font-size: 1rem;
+  }
+}
