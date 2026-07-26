@@ -1,0 +1,292 @@
+/*
+====================================================
+OPERATION HUNT — RESPONSIVE SHELL
+Final presentation layer for the mission header, status cards,
+panel consistency, safe areas, and desktop-to-phone layout.
+====================================================
+*/
+
+.demo-page {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(36, 99, 235, 0.09), transparent 34rem),
+    var(--oh-gray-100);
+  font-family: var(--oh-font-ui);
+}
+
+.demo-shell {
+  isolation: isolate;
+}
+
+.demo-topbar {
+  position: relative;
+  overflow: hidden;
+  padding-top: env(safe-area-inset-top, 0px);
+  border-bottom-color: rgba(203, 213, 225, 0.9);
+  background:
+    radial-gradient(circle at 14% 10%, rgba(85, 169, 255, 0.24), transparent 20rem),
+    linear-gradient(135deg, var(--oh-navy-950), var(--oh-navy-800));
+  box-shadow: 0 8px 24px rgba(7, 26, 51, 0.18);
+}
+
+.demo-topbar::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--oh-blue-600), var(--oh-green-600), var(--oh-yellow-500));
+  pointer-events: none;
+}
+
+.demo-brand-card,
+.demo-objective-card {
+  position: relative;
+  z-index: 1;
+}
+
+.demo-brand-icon {
+  border: 3px solid rgba(255, 255, 255, 0.72);
+  box-shadow:
+    0 8px 18px rgba(0, 0, 0, 0.22),
+    inset 0 0 0 4px rgba(36, 99, 235, 0.08);
+}
+
+.demo-brand-copy small {
+  color: #ffe16a;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.demo-objective-card p {
+  max-width: 58ch;
+}
+
+.demo-active-card,
+.demo-status-card {
+  position: relative;
+  z-index: 1;
+  min-height: 72px;
+  border: 2px solid rgba(255, 255, 255, 0.34);
+  transition:
+    background var(--oh-duration-normal) var(--oh-ease-standard),
+    border-color var(--oh-duration-normal) var(--oh-ease-standard),
+    color var(--oh-duration-normal) var(--oh-ease-standard),
+    transform var(--oh-duration-fast) var(--oh-ease-standard),
+    box-shadow var(--oh-duration-normal) var(--oh-ease-standard);
+}
+
+.demo-active-card {
+  border-color: rgba(125, 255, 136, 0.58);
+  background: linear-gradient(145deg, #20a94b, #08732c);
+}
+
+.mode-max-out .demo-active-card {
+  border-color: rgba(255, 218, 102, 0.72);
+  background: linear-gradient(145deg, #d98213, #9f5008);
+}
+
+.mode-practice .demo-active-card {
+  border-color: rgba(124, 255, 178, 0.7);
+  background: linear-gradient(145deg, #168b51, #075f37);
+}
+
+.demo-status-card {
+  border-color: rgba(85, 169, 255, 0.76);
+  background: linear-gradient(145deg, #277ad6, #0a559f);
+}
+
+.demo-status-card.status-waiting {
+  border-color: rgba(203, 213, 225, 0.72);
+  background: linear-gradient(145deg, #53677d, #30445a);
+}
+
+.demo-status-card.status-open {
+  border-color: rgba(85, 169, 255, 0.88);
+  background: linear-gradient(145deg, #2684ef, #0865c6);
+}
+
+.demo-status-card.status-locked {
+  border-color: #ffe16a;
+  background: linear-gradient(145deg, #f5bd21, #bd7900);
+  color: var(--oh-navy-950);
+}
+
+.demo-status-card.status-locked span,
+.demo-status-card.status-locked strong {
+  color: var(--oh-navy-950);
+}
+
+.demo-status-card.status-matched,
+.demo-status-card.strike,
+.demo-status-card.complete {
+  border-color: #7dff88;
+  background: linear-gradient(145deg, #20b34a, #087d2e);
+}
+
+.demo-status-card.status-revealed {
+  border-color: #c6b5ff;
+  background: linear-gradient(145deg, #7b58d8, #5332a2);
+}
+
+.demo-status-card.status-miss,
+.demo-status-card.status-expired,
+.demo-status-card.time-up {
+  border-color: #ff8b84;
+  background: linear-gradient(145deg, #df342b, #8e0c08);
+}
+
+.demo-status-card.status-updated {
+  animation: oh-shell-status-pop 360ms var(--oh-ease-pop);
+}
+
+@keyframes oh-shell-status-pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.035); }
+  100% { transform: scale(1); }
+}
+
+.demo-dashboard-grid {
+  padding-bottom: max(clamp(12px, 1.7vh, 22px), env(safe-area-inset-bottom, 0px));
+}
+
+.demo-panel,
+.demo-radar-card,
+.demo-equation-card,
+.demo-feedback-strip article {
+  border-color: var(--oh-gray-200);
+  box-shadow: var(--oh-shadow-sm);
+}
+
+.demo-panel,
+.demo-radar-card {
+  border-radius: var(--oh-radius-md);
+}
+
+.demo-panel > header,
+.demo-leaderboard-panel > header {
+  min-height: 44px;
+}
+
+/*
+Tablet and compact laptop range. This activates before the
+phone layout so the four-column header never becomes cramped.
+*/
+@media (max-width: 1180px) and (min-width: 861px) {
+  .demo-page {
+    width: 100%;
+    min-height: 100dvh;
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .demo-shell {
+    width: 100%;
+    min-height: 100dvh;
+    height: auto;
+    grid-template-rows: auto auto;
+    overflow: visible;
+  }
+
+  .demo-topbar {
+    grid-template-columns: minmax(260px, 0.9fr) minmax(420px, 1.45fr);
+  }
+
+  .demo-brand-card,
+  .demo-objective-card {
+    min-height: 112px;
+  }
+
+  .demo-active-card,
+  .demo-status-card {
+    min-height: 70px;
+    margin: 10px 14px 14px;
+  }
+
+  .demo-dashboard-grid {
+    grid-template-columns: minmax(270px, 0.82fr) minmax(430px, 1.38fr);
+    align-items: start;
+    overflow: visible;
+  }
+
+  .demo-control-panel,
+  .demo-play-panel,
+  .demo-data-panel {
+    min-height: auto;
+    overflow: visible;
+  }
+
+  .demo-data-panel {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: minmax(300px, 1.2fr) minmax(260px, 1fr) minmax(220px, 0.8fr);
+    align-items: start;
+  }
+
+  .demo-note-panel {
+    align-self: stretch;
+  }
+}
+
+@media (max-width: 860px) {
+  .demo-topbar {
+    position: relative;
+  }
+
+  .demo-brand-card,
+  .demo-objective-card {
+    min-height: auto;
+  }
+
+  .demo-active-card,
+  .demo-status-card {
+    min-height: 54px;
+    border-left: 0;
+    border-right: 0;
+  }
+
+  .demo-dashboard-grid {
+    padding-bottom: max(14px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .demo-data-panel {
+    grid-column: auto;
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .demo-topbar {
+    box-shadow: 0 6px 18px rgba(7, 26, 51, 0.18);
+  }
+
+  .demo-brand-card {
+    justify-content: flex-start;
+  }
+
+  .demo-brand-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 1.6rem;
+  }
+
+  .demo-objective-card {
+    gap: 10px;
+  }
+
+  .demo-active-card,
+  .demo-status-card {
+    min-height: 50px;
+    padding-block: 8px;
+  }
+
+  .demo-panel,
+  .demo-radar-card {
+    border-radius: var(--oh-radius-sm);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .demo-status-card.status-updated {
+    animation: none;
+  }
+}
