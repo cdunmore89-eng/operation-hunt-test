@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="css/demo.css">
   <link rel="stylesheet" href="css/operation-hunt-design-system.css">
   <link rel="stylesheet" href="css/operation-hunt-timer.css">
+  <link rel="stylesheet" href="css/operation-hunt-feedback.css">
 </head>
 
 <body class="demo-page mode-classic">
@@ -207,9 +208,9 @@
           <div id="puzzle-board" class="puzzle-board demo-puzzle-board grid-size-2" aria-label="Operation Hunt puzzle board"></div>
         </section>
 
-        <section class="demo-equation-card">
+        <section class="demo-equation-card" aria-label="Equation">
           <span>EQUATION</span>
-          <strong id="equation-display">Hidden</strong>
+          <strong id="equation-display" aria-live="polite">Hidden</strong>
 
           <label class="running-sum-toggle" for="running-sum-toggle">
             <input id="running-sum-toggle" type="checkbox">
@@ -218,18 +219,18 @@
           </label>
         </section>
 
-        <section class="demo-feedback-strip">
-          <article>
+        <section class="demo-feedback-strip" aria-label="Attempt feedback legend">
+          <article data-feedback="locked" aria-current="false">
             <span>TARGET LOCKED</span>
             <small>selected numbers glow yellow</small>
           </article>
 
-          <article>
+          <article data-feedback="matched" aria-current="false">
             <span>TARGET MATCHED</span>
             <small>answer tile flashes green</small>
           </article>
 
-          <article>
+          <article data-feedback="miss" aria-current="false">
             <span>MISS</span>
             <small>wrong pair buzzes red</small>
           </article>
@@ -309,6 +310,7 @@
   <script src="js/puzzle-engine.js"></script>
   <script src="js/demo.js"></script>
   <script src="js/demo-timer-ui.js"></script>
+  <script src="js/demo-feedback-ui.js"></script>
 
 </body>
 
