@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/demo.css">
   <link rel="stylesheet" href="css/operation-hunt-design-system.css">
+  <link rel="stylesheet" href="css/operation-hunt-timer.css">
 </head>
 
 <body class="demo-page mode-classic">
@@ -153,7 +154,7 @@
           </div>
         </section>
 
-        <section id="timer-card" class="demo-panel demo-timer-card timer-disabled">
+        <section id="timer-card" class="demo-panel demo-timer-card timer-disabled" aria-label="Round timer">
           <div class="timer-header">
             <h2>⏱ Round Timer</h2>
 
@@ -176,11 +177,11 @@
             <option value="60">60 Seconds</option>
           </select>
 
-          <div id="timer-ring" class="timer-ring">
+          <div id="timer-ring" class="timer-ring" role="timer" aria-label="Round timer">
             <div class="timer-ring-center">
               <span class="timer-clock-icon" aria-hidden="true">◷</span>
               <strong id="timer-display">00:30</strong>
-              <span id="timer-caption">TIMER OFF</span>
+              <span id="timer-caption" aria-live="polite">TIMER OFF</span>
             </div>
           </div>
         </section>
@@ -307,6 +308,7 @@
 
   <script src="js/puzzle-engine.js"></script>
   <script src="js/demo.js"></script>
+  <script src="js/demo-timer-ui.js"></script>
 
 </body>
 
