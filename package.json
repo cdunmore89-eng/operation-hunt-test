@@ -1,0 +1,29 @@
+{
+  "name": "operation-hunt-mobile",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Native iOS and Android wrapper for the certified Operation Hunt web game.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "preflight": "node scripts/check-mobile-environment.mjs",
+    "build": "node scripts/build-mobile.mjs",
+    "mobile:init": "npm run build && npx cap add ios && npx cap add android && npx cap sync",
+    "mobile:sync": "npm run build && npx cap sync",
+    "mobile:copy": "npm run build && npx cap copy",
+    "mobile:open:ios": "npx cap open ios",
+    "mobile:open:android": "npx cap open android",
+    "mobile:run:ios": "npm run mobile:sync && npx cap run ios",
+    "mobile:run:android": "npm run mobile:sync && npx cap run android"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.4.2",
+    "@capacitor/core": "8.4.2",
+    "@capacitor/ios": "8.4.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.4.2"
+  }
+}
