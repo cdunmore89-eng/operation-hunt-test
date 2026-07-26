@@ -30,6 +30,10 @@
     }
 
     function calculate(operation, values) {
+        if (typeof engine.calculateResult === "function") {
+            return engine.calculateResult(operation, values);
+        }
+
         if (operation === engine.OPERATIONS.SUBTRACTION) {
             return values.slice(1).reduce(
                 (difference, value) => difference - value,
@@ -147,6 +151,27 @@
                     wrongOrder === null
                 );
             }
+
+            if (operation === engine.OPERATIONS.MULTIPLICATION) {
+                const reversedFactors = [
+                    ...combination.termIndexes
+                ].reverse();
+
+                const reordered = engine.findComboForSelection(
+                    operation,
+                    puzzle.numbers,
+                    reversedFactors,
+                    terms,
+                    []
+                );
+
+                record(
+                    `${label}: factor order is flexible`,
+                    Boolean(reordered) &&
+                        reordered.resultIndex ===
+                            combination.resultIndex
+                );
+            }
         } catch (error) {
             record(label, false, error.message);
         }
@@ -154,7 +179,8 @@
 
     [
         engine.OPERATIONS.ADDITION,
-        engine.OPERATIONS.SUBTRACTION
+        engine.OPERATIONS.SUBTRACTION,
+        engine.OPERATIONS.MULTIPLICATION
     ].forEach(operation => {
         getConfigurations().forEach(configuration => {
             runConfiguration(operation, configuration);
