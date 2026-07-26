@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Operation Hunt Arithmetic Regression</title>
+  <style>
+    :root { font-family: Inter, system-ui, sans-serif; color: #172033; background: #f1f5f9; }
+    body { margin: 0; padding: 24px; }
+    main { width: min(100%, 980px); margin: 0 auto; }
+    header { margin-bottom: 18px; }
+    h1 { margin: 0 0 6px; }
+    p { margin: 0; color: #4a5568; }
+    .regression-summary { margin: 18px 0; padding: 16px; border-radius: 14px; font-weight: 900; }
+    .regression-summary.pass { color: #0b6827; background: #e9f8ef; border: 2px solid #138a4b; }
+    .regression-summary.fail { color: #9b1c1c; background: #fdecec; border: 2px solid #c93636; }
+    ol { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+    li { display: grid; grid-template-columns: 54px minmax(0, 1fr); gap: 8px 12px; padding: 12px 14px; border-radius: 12px; background: white; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08); }
+    li.pass strong { color: #138a4b; }
+    li.fail strong { color: #c93636; }
+    li small { grid-column: 2; color: #718096; overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Arithmetic Engine Regression</h1>
+      <p>Addition and subtraction across every supported grid and term count.</p>
+    </header>
+    <div id="regression-summary" class="regression-summary">Running checks…</div>
+    <ol id="regression-output"></ol>
+  </main>
+
+  <script src="js/puzzle-engine.js"></script>
+  <script src="js/arithmetic-engine.js"></script>
+  <script src="js/arithmetic-regression.js"></script>
+</body>
+</html>
