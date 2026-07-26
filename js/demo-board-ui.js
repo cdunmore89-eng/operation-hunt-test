@@ -75,14 +75,14 @@ existing puzzle buttons. It never changes puzzle state.
         const gridSize = getGridSize();
         const cells = getCells();
 
-        board.setAttribute("role", "grid");
+        board.setAttribute("role", "group");
         board.setAttribute(
             "aria-label",
             `Operation Hunt ${gridSize} by ${gridSize} target board`
         );
 
         cells.forEach((cell, index) => {
-            cell.setAttribute("role", "gridcell");
+            cell.removeAttribute("role");
             cell.setAttribute(
                 "aria-pressed",
                 cell.classList.contains("selected") ||
