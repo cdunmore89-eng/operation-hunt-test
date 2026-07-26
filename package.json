@@ -10,7 +10,7 @@
   "scripts": {
     "preflight": "node scripts/check-mobile-environment.mjs",
     "build": "node scripts/build-mobile.mjs",
-    "mobile:init": "npm run build && npx cap add ios && npx cap add android && npx cap sync",
+    "mobile:init": "npm run build && node scripts/init-mobile.mjs",
     "mobile:sync": "npm run build && npx cap sync",
     "mobile:copy": "npm run build && npx cap copy",
     "mobile:open:ios": "npx cap open ios",
