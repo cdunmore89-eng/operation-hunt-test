@@ -178,6 +178,12 @@
         }
 
         const combinations = [];
+        const indexByValue = new Map(
+            availableIndexes.map(index => [
+                Number(numbers[index]),
+                index
+            ])
+        );
 
         availableIndexes.forEach(minuendIndex => {
             const possibleSubtrahends = availableIndexes.filter(
@@ -206,23 +212,24 @@
                     Number(numbers[minuendIndex])
                 );
 
-                availableIndexes.forEach(resultIndex => {
-                    if (termIndexSet.has(resultIndex)) {
-                        return;
-                    }
+                const resultIndex = indexByValue.get(
+                    difference
+                );
 
-                    if (Number(numbers[resultIndex]) !== difference) {
-                        return;
-                    }
+                if (
+                    resultIndex === undefined ||
+                    termIndexSet.has(resultIndex)
+                ) {
+                    return;
+                }
 
-                    combinations.push(
-                        buildSubtractionRecord(
-                            numbers,
-                            [minuendIndex, ...subtrahendIndexes],
-                            resultIndex
-                        )
-                    );
-                });
+                combinations.push(
+                    buildSubtractionRecord(
+                        numbers,
+                        [minuendIndex, ...subtrahendIndexes],
+                        resultIndex
+                    )
+                );
             });
         });
 
