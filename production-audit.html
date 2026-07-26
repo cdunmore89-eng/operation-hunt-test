@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Operation Hunt Release Certification</title>
+  <style>
+    :root {
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #172033;
+      background: #eef3f8;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 24px; }
+    main { width: min(100%, 1180px); margin: 0 auto; }
+    header { display: grid; gap: 8px; margin-bottom: 18px; }
+    h1, h2 { margin: 0; }
+    p { margin: 0; color: #526174; }
+
+    .toolbar,
+    .summary,
+    .manual-checklist,
+    .audit-frame-wrap {
+      border: 1px solid #cbd5e1;
+      border-radius: 16px;
+      background: #ffffff;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+    }
+
+    button {
+      min-height: 44px;
+      padding: 0 18px;
+      border: 0;
+      border-radius: 12px;
+      background: #123a73;
+      color: #ffffff;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    button:disabled { cursor: wait; opacity: 0.65; }
+    button:focus-visible { outline: 3px solid #8ab8ff; outline-offset: 2px; }
+
+    .summary {
+      margin: 16px 0;
+      padding: 16px;
+      font-weight: 900;
+    }
+
+    .summary.running { color: #6b4e00; border-color: #e0b84d; background: #fff8df; }
+    .summary.pass { color: #0b6827; border-color: #138a4b; background: #e9f8ef; }
+    .summary.fail { color: #9b1c1c; border-color: #c93636; background: #fdecec; }
+
+    .audit-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(340px, 0.75fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .results-panel,
+    .manual-checklist { min-width: 0; }
+
+    #audit-results {
+      display: grid;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    #audit-results li {
+      display: grid;
+      grid-template-columns: 64px minmax(0, 1fr);
+      gap: 6px 12px;
+      padding: 11px 13px;
+      border: 1px solid #d8e0e9;
+      border-radius: 12px;
+      background: #ffffff;
+    }
+
+    #audit-results li.pass strong { color: #138a4b; }
+    #audit-results li.fail strong { color: #c93636; }
+    #audit-results li.info strong { color: #305b95; }
+    #audit-results small { grid-column: 2; color: #718096; overflow-wrap: anywhere; }
+
+    .manual-checklist { padding: 16px; }
+    .manual-checklist h2 { margin-bottom: 10px; font-size: 1.1rem; }
+    .manual-checklist label {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 0;
+      color: #344054;
+    }
+    .manual-checklist input { margin-top: 3px; }
+
+    .audit-frame-wrap { margin-top: 16px; overflow: hidden; }
+    .audit-frame-wrap header { padding: 12px 14px; margin: 0; border-bottom: 1px solid #d8e0e9; }
+    iframe { display: block; width: 100%; height: 760px; border: 0; background: #ffffff; }
+
+    @media (max-width: 900px) {
+      body { padding: 14px; }
+      .audit-grid { grid-template-columns: 1fr; }
+      iframe { height: 680px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Operation Hunt Release Certification</h1>
+      <p>Automated browser-level checks against the real Demo, followed by the remaining human visual and device checks.</p>
+    </header>
+
+    <section class="toolbar" aria-label="Audit controls">
+      <div>
+        <strong>Phase 3 automated audit</strong>
+        <p id="audit-progress">Ready to test the four-operation production build.</p>
+      </div>
+      <button id="run-audit" type="button">Run Full Audit</button>
+    </section>
+
+    <div id="audit-summary" class="summary running" aria-live="polite">Audit has not started.</div>
+
+    <section class="audit-grid">
+      <div class="results-panel">
+        <ol id="audit-results" aria-label="Automated audit results"></ol>
+      </div>
+
+      <aside class="manual-checklist">
+        <h2>Human certification checks</h2>
+        <label><input type="checkbox"> No browser-console errors during normal play</label>
+        <label><input type="checkbox"> Desktop layout at 1440px and 1024px</label>
+        <label><input type="checkbox"> Tablet layout around 768px–900px</label>
+        <label><input type="checkbox"> Phone layout around 390px</label>
+        <label><input type="checkbox"> Keyboard focus is visible and logical</label>
+        <label><input type="checkbox"> Text remains readable at 200% zoom</label>
+        <label><input type="checkbox"> Timers, sound/feedback, and animations feel correct</label>
+        <label><input type="checkbox"> Physical touch testing on phone or tablet</label>
+      </aside>
+    </section>
+
+    <section class="audit-frame-wrap">
+      <header>
+        <strong>Live production build under test</strong>
+        <p>The automated audit controls this embedded copy of <code>demo.html</code>.</p>
+      </header>
+      <iframe id="audit-frame" src="demo.html" title="Operation Hunt production Demo"></iframe>
+    </section>
+  </main>
+
+  <script src="js/production-audit.js"></script>
+</body>
+</html>
