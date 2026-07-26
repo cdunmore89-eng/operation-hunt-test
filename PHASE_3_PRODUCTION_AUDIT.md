@@ -6,22 +6,34 @@ Phase 3 certifies the complete four-operation web game as one production build b
 
 This phase does not add new gameplay. It verifies that the approved systems work together without regressions and records the exact build that will become the mobile-app baseline.
 
-## Current status
+## Certification status
+
+**PHASE 3 COMPLETE — APPROVED FOR NATIVE PACKAGING**
+
+Certified on July 26, 2026.
+
+Tested production snapshot:
+
+```text
+Branch: app-release
+Commit: c3d97026ae523f86496c5ee35d4946336e73dcae
+```
 
 - Addition reference build: approved
 - Subtraction: approved
 - Multiplication: approved
 - Division: approved
-- Four-operation engine regression: approved
-- Browser-level production certification: ready for execution
-- Human responsive/device certification: pending
-- Production baseline freeze: pending
+- Four-operation engine regression: passed
+- Browser-level production certification: passed
+- Human responsive/device certification: passed
+- Production baseline freeze: complete
+- Known release-blocking issues: none reported
 
 ## Automated engine regression
 
 Open `arithmetic-regression.html`.
 
-Expected result:
+Certified result:
 
 ```text
 PASS — 270/270 checks passed.
@@ -47,7 +59,7 @@ The engine regression verifies:
 
 Open `production-audit.html` and select **Run Full Audit**.
 
-Expected result:
+Certified result:
 
 ```text
 PASS — 122/122 automated browser checks passed.
@@ -75,9 +87,9 @@ The browser certification loads the real `demo.html` and verifies:
 - timer start and expiration
 - absence of unexpected alert messages
 
-## Human certification checklist
+## Human certification
 
-The following checks remain intentionally human because they depend on visual judgment, hardware, or browser developer tools:
+All human checks were completed and approved:
 
 - no console errors during normal play
 - desktop layout at approximately 1440px and 1024px
@@ -89,8 +101,6 @@ The following checks remain intentionally human because they depend on visual ju
 - physical touch testing on a phone or tablet
 
 ## Release matrix
-
-Each operation must pass the following:
 
 | Area | Addition | Subtraction | Multiplication | Division |
 |---|---:|---:|---:|---:|
@@ -106,14 +116,12 @@ Each operation must pass the following:
 | Timer | Approved | Approved | Approved | Approved |
 | Persistent flow boards | Approved | Approved | Approved | Approved |
 
-## Phase 3 completion rule
+## Frozen baseline rule
 
-Phase 3 is complete when:
+Commit `c3d97026ae523f86496c5ee35d4946336e73dcae` is the certified web-product snapshot.
 
-1. `arithmetic-regression.html` passes all 270 checks.
-2. `production-audit.html` passes all 122 browser checks.
-3. Every human certification item is confirmed.
-4. Any discovered issue is fixed and both automated suites are rerun.
-5. The resulting `app-release` commit is recorded as the frozen web baseline.
+Phase 4 work may add native packaging, platform configuration, mobile lifecycle handling, and monetization hooks. Changes to the certified game engine or approved web interface require both automated suites and the relevant human checks to be rerun before release.
 
-After the baseline is frozen, development advances to Phase 4: native iOS and Android application packaging.
+## Next phase
+
+Development advances to **Phase 4: native iOS and Android application packaging**.
