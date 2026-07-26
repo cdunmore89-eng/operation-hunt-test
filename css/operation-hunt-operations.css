@@ -1,9 +1,9 @@
 /*
 ====================================================
 OPERATION HUNT — OPERATION SELECTOR
-Addition remains the reference theme. Subtraction and
-multiplication receive their own accents while sharing every
-approved component.
+Addition remains the reference theme. Subtraction,
+multiplication, and division receive their own accents while
+sharing every approved component.
 ====================================================
 */
 
@@ -127,6 +127,46 @@ approved component.
 
 .operation-multiplication .running-sum-toggle input:focus-visible + span {
   outline-color: #ffdfaa;
+}
+
+.operation-division .demo-radar-chip {
+  background: #e8f8fb;
+}
+
+.operation-division .demo-radar-chip b,
+.operation-division .demo-brand-copy small {
+  color: #8ce8f3;
+}
+
+.operation-division .demo-objective-card {
+  background: rgba(12, 126, 145, 0.09);
+}
+
+.operation-division .demo-equation-card {
+  border-color: #087d90;
+}
+
+.operation-division .demo-equation-card > span {
+  background: linear-gradient(145deg, #1093a8, #066578);
+}
+
+.operation-division .running-sum-toggle {
+  border-color: rgba(8, 125, 144, 0.24);
+  background: linear-gradient(180deg, #f4fdff, #e5f7fa);
+  color: #075f70;
+}
+
+.operation-division .running-sum-toggle span {
+  border-color: #087d90;
+}
+
+.operation-division .running-sum-toggle input:checked + span {
+  border-color: #075f70;
+  background: linear-gradient(145deg, #14a2b8, #087184);
+}
+
+.operation-division .running-sum-toggle input:focus-visible + span {
+  outline-color: #bcecf2;
 }
 
 @media (max-width: 860px) {
