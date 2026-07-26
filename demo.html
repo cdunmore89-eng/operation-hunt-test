@@ -9,6 +9,7 @@
 
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/demo.css">
+  <link rel="stylesheet" href="css/operation-hunt-design-system.css">
 </head>
 
 <body class="demo-page mode-classic">
@@ -63,33 +64,33 @@
             <h2>Mission Controls</h2>
           </header>
 
-          <div class="demo-button-grid">
-            <button id="new-puzzle-button" class="demo-button demo-blue" type="button">
+          <div class="demo-button-grid" style="--oh-touch-min: clamp(50px, 7vh, 72px);">
+            <button id="new-puzzle-button" class="demo-button demo-blue oh-button oh-button--primary" type="button">
               <span>✦</span>
               <strong>New Puzzle</strong>
             </button>
 
-            <button id="reveal-button" class="demo-button demo-purple" type="button">
+            <button id="reveal-button" class="demo-button demo-purple oh-button oh-button--reveal" type="button">
               <span>◉</span>
               <strong>Reveal</strong>
             </button>
 
-            <button id="previous-player-button" class="demo-button demo-orange" type="button">
+            <button id="previous-player-button" class="demo-button demo-orange oh-button oh-button--warning" type="button">
               <span>←</span>
               <strong>Previous</strong>
             </button>
 
-            <button id="next-player-button" class="demo-button demo-green" type="button">
+            <button id="next-player-button" class="demo-button demo-green oh-button oh-button--success" type="button">
               <span>→</span>
               <strong>Next</strong>
             </button>
 
-            <button id="reset-session-button" class="demo-button demo-red" type="button">
+            <button id="reset-session-button" class="demo-button demo-red oh-button oh-button--danger" type="button">
               <span>★</span>
               <strong>Reset Session</strong>
             </button>
 
-            <button id="reset-board-button" class="demo-button demo-gray" type="button">
+            <button id="reset-board-button" class="demo-button demo-gray oh-button oh-button--neutral" type="button">
               <span>◌</span>
               <strong>Reset Board</strong>
             </button>
