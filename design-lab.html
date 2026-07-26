@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Operation Hunt Design Lab</title>
+  <style>
+    :root {
+      --navy-950: #071a33;
+      --navy-900: #0b2447;
+      --navy-800: #123a67;
+      --blue-600: #2463eb;
+      --blue-100: #eaf1ff;
+      --green-600: #138a4b;
+      --green-100: #e9f8ef;
+      --yellow-500: #e6a700;
+      --yellow-100: #fff7d6;
+      --red-600: #c93636;
+      --red-100: #fdecec;
+      --purple-600: #7048d7;
+      --orange-600: #d96f19;
+      --gray-950: #172033;
+      --gray-700: #4a5568;
+      --gray-500: #718096;
+      --gray-300: #cbd5e1;
+      --gray-200: #e2e8f0;
+      --gray-100: #f1f5f9;
+      --gray-50: #f8fafc;
+      --white: #ffffff;
+      --radius-sm: 10px;
+      --radius-md: 16px;
+      --radius-lg: 22px;
+      --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.08);
+      --shadow-md: 0 10px 28px rgba(15, 23, 42, 0.12);
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-8: 32px;
+      --font-display: "Arial Black", Inter, system-ui, sans-serif;
+      --font-ui: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--gray-100);
+      color: var(--gray-950);
+      font-family: var(--font-ui);
+    }
+
+    button, input, select { font: inherit; }
+
+    .lab-shell {
+      width: min(1440px, 100%);
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .lab-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 22px 24px;
+      margin-bottom: 24px;
+      border-radius: var(--radius-lg);
+      background: var(--navy-950);
+      color: var(--white);
+      box-shadow: var(--shadow-md);
+    }
+
+    .brand-lockup { display: flex; align-items: center; gap: 14px; }
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 56px;
+      height: 56px;
+      border-radius: 18px;
+      background: var(--white);
+      color: var(--navy-950);
+      font-size: 30px;
+    }
+    .brand-copy span,
+    .section-kicker,
+    .token-label,
+    .status-label {
+      display: block;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      font-size: .72rem;
+      font-weight: 800;
+    }
+    .brand-copy strong {
+      display: block;
+      font-family: var(--font-display);
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      line-height: 1;
+    }
+    .brand-copy small { color: #cbd5e1; }
+
+    .lab-controls { display: flex; flex-wrap: wrap; gap: 10px; }
+    .control-button {
+      min-height: 42px;
+      padding: 0 16px;
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      color: white;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .control-button:hover { background: rgba(255,255,255,.16); }
+
+    .lab-grid {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 20px;
+    }
+
+    .lab-section {
+      grid-column: span 6;
+      padding: 22px;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      background: var(--white);
+      box-shadow: var(--shadow-sm);
+    }
+    .lab-section.full { grid-column: 1 / -1; }
+    .lab-section.third { grid-column: span 4; }
+
+    .section-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+    .section-heading h2 { margin: 3px 0 0; font-size: 1.2rem; }
+    .section-heading p { margin: 5px 0 0; color: var(--gray-500); font-size: .9rem; }
+    .section-kicker { color: var(--blue-600); }
+
+    .button-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .mission-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      min-height: 54px;
+      padding: 10px 14px;
+      border: 0;
+      border-radius: var(--radius-sm);
+      color: white;
+      font-weight: 900;
+      box-shadow: 0 4px 0 rgba(15,23,42,.22);
+      cursor: pointer;
+      transition: transform .12s ease, box-shadow .12s ease;
+    }
+    .mission-button:hover { transform: translateY(-1px); box-shadow: 0 6px 0 rgba(15,23,42,.18); }
+    .mission-button:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(15,23,42,.2); }
+    .blue { background: var(--blue-600); }
+    .purple { background: var(--purple-600); }
+    .orange { background: var(--orange-600); }
+    .green { background: var(--green-600); }
+    .red { background: var(--red-600); }
+    .gray { background: var(--gray-700); }
+
+    .panel-showcase { display: grid; grid-template-columns: 1.1fr .9fr; gap: 16px; }
+    .sample-panel {
+      padding: 18px;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-md);
+      background: var(--gray-50);
+    }
+    .sample-panel h3 { margin: 0 0 12px; }
+    .sample-panel.dark { background: var(--navy-950); color: white; border-color: var(--navy-950); }
+
+    .field-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    label { display: grid; gap: 6px; color: var(--gray-700); font-size: .82rem; font-weight: 800; }
+    select, input[type="number"] {
+      width: 100%;
+      min-height: 44px;
+      padding: 0 12px;
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius-sm);
+      background: white;
+      color: var(--gray-950);
+    }
+
+    .board-stage {
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      border-radius: var(--radius-lg);
+      background:
+        radial-gradient(circle at center, rgba(36,99,235,.12), transparent 55%),
+        linear-gradient(180deg, #eef4fb, #f8fafc);
+      border: 1px solid var(--gray-200);
+    }
+    .board-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(72px, 110px));
+      gap: 10px;
+    }
+    .tile {
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      position: relative;
+      border: 3px solid var(--navy-800);
+      border-radius: 18px;
+      background: white;
+      color: var(--navy-950);
+      font-family: var(--font-display);
+      font-size: clamp(1.7rem, 5vw, 3rem);
+      box-shadow: 0 6px 0 rgba(11,36,71,.18);
+    }
+    .tile.locked { border-color: var(--yellow-500); background: var(--yellow-100); }
+    .tile.matched { border-color: var(--green-600); background: var(--green-100); }
+    .tile.miss { border-color: var(--red-600); background: var(--red-100); }
+    .tile small {
+      position: absolute;
+      bottom: 6px;
+      font-family: var(--font-ui);
+      font-size: .52rem;
+      letter-spacing: .08em;
+    }
+
+    .feedback-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .feedback-card {
+      padding: 16px;
+      border: 2px solid currentColor;
+      border-radius: var(--radius-md);
+      background: white;
+      font-weight: 900;
+    }
+    .feedback-card small { display: block; margin-top: 5px; font-weight: 600; opacity: .75; }
+    .feedback-card.locked { color: #9a6b00; background: var(--yellow-100); }
+    .feedback-card.matched { color: var(--green-600); background: var(--green-100); }
+    .feedback-card.miss { color: var(--red-600); background: var(--red-100); }
+
+    .equation-bar {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      min-height: 78px;
+      overflow: hidden;
+      border: 2px solid var(--navy-900);
+      border-radius: var(--radius-md);
+      background: white;
+    }
+    .equation-bar > span { padding: 0 18px; color: white; background: var(--navy-900); align-self: stretch; display: grid; place-items: center; font-weight: 900; }
+    .equation-bar strong { padding: 0 18px; text-align: center; font-family: var(--font-display); font-size: clamp(1.6rem, 4vw, 2.4rem); }
+    .equation-toggle { padding: 0 16px; color: var(--gray-700); font-size: .8rem; }
+
+    .score-card { overflow: hidden; border: 1px solid var(--gray-200); border-radius: var(--radius-md); }
+    .score-row { display: grid; grid-template-columns: 1fr 80px 80px; align-items: center; min-height: 46px; padding: 0 14px; border-bottom: 1px solid var(--gray-200); }
+    .score-row:last-child { border-bottom: 0; }
+    .score-row.header { background: var(--navy-950); color: white; font-size: .76rem; font-weight: 900; text-transform: uppercase; letter-spacing: .06em; }
+    .score-row.active { background: var(--blue-100); box-shadow: inset 4px 0 var(--blue-600); }
+
+    .timer-wrap { display: grid; place-items: center; padding: 8px 0; }
+    .timer-ring {
+      width: 150px;
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      border: 12px solid var(--blue-600);
+      border-radius: 50%;
+      background: white;
+      box-shadow: inset 0 0 0 8px var(--blue-100), var(--shadow-sm);
+    }
+    .timer-ring strong { display: block; font-family: var(--font-display); font-size: 2rem; }
+    .timer-ring span { display: block; color: var(--gray-500); font-size: .7rem; font-weight: 900; letter-spacing: .08em; }
+
+    .token-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .token { padding: 12px; border: 1px solid var(--gray-200); border-radius: var(--radius-sm); background: var(--gray-50); }
+    .swatch { height: 42px; margin-bottom: 8px; border-radius: 8px; border: 1px solid rgba(15,23,42,.08); }
+    .token code { font-size: .72rem; color: var(--gray-500); }
+
+    .type-sample h1 { margin: 0; font-family: var(--font-display); font-size: 2.1rem; }
+    .type-sample h2 { margin: 10px 0 0; font-size: 1.25rem; }
+    .type-sample p { margin: 10px 0 0; color: var(--gray-700); line-height: 1.6; }
+
+    body.compact .lab-section { padding: 16px; }
+    body.compact .lab-grid { gap: 12px; }
+    body.rounded { --radius-sm: 16px; --radius-md: 22px; --radius-lg: 28px; }
+    body.flat { --shadow-sm: none; --shadow-md: none; }
+
+    @media (max-width: 980px) {
+      .lab-section, .lab-section.third { grid-column: 1 / -1; }
+      .panel-showcase { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      .lab-shell { padding: 12px; }
+      .lab-header { align-items: flex-start; flex-direction: column; padding: 18px; }
+      .button-grid, .feedback-grid, .token-grid, .field-grid { grid-template-columns: 1fr 1fr; }
+      .board-grid { grid-template-columns: repeat(3, minmax(64px, 1fr)); width: 100%; }
+      .equation-bar { grid-template-columns: 1fr; }
+      .equation-bar > span { min-height: 34px; }
+      .equation-toggle { padding: 12px; text-align: center; border-top: 1px solid var(--gray-200); }
+    }
+
+    @media (max-width: 430px) {
+      .button-grid, .feedback-grid, .token-grid, .field-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="lab-shell">
+    <header class="lab-header">
+      <div class="brand-lockup">
+        <div class="brand-mark" aria-hidden="true">🎯</div>
+        <div class="brand-copy">
+          <span>Operation Hunt</span>
+          <strong>Design Lab</strong>
+          <small>Isolated component testing — gameplay untouched</small>
+        </div>
+      </div>
+      <div class="lab-controls" aria-label="Design preview controls">
+        <button class="control-button" id="density-button" type="button">Compact spacing</button>
+        <button class="control-button" id="radius-button" type="button">Rounder corners</button>
+        <button class="control-button" id="shadow-button" type="button">Remove shadows</button>
+      </div>
+    </header>
+
+    <section class="lab-grid">
+      <article class="lab-section full">
+        <div class="section-heading">
+          <div><span class="section-kicker">Core interaction</span><h2>Mission buttons</h2><p>Large, obvious, touch-friendly controls with consistent depth.</p></div>
+        </div>
+        <div class="button-grid">
+          <button class="mission-button blue" type="button"><span>✦</span>New Puzzle</button>
+          <button class="mission-button purple" type="button"><span>◉</span>Reveal</button>
+          <button class="mission-button orange" type="button"><span>←</span>Previous</button>
+          <button class="mission-button green" type="button"><span>→</span>Next</button>
+          <button class="mission-button red" type="button"><span>★</span>Reset Session</button>
+          <button class="mission-button gray" type="button"><span>◌</span>Reset Board</button>
+        </div>
+      </article>
+
+      <article class="lab-section">
+        <div class="section-heading"><div><span class="section-kicker">Controls</span><h2>Mission setup</h2><p>One input style across teacher and student-facing screens.</p></div></div>
+        <div class="panel-showcase">
+          <div class="sample-panel">
+            <h3>Game settings</h3>
+            <div class="field-grid">
+              <label>Game mode<select><option>Classic Hunt</option><option>Max Out Challenge</option><option>Practice Mode</option></select></label>
+              <label>Grid size<select><option>2 × 2</option><option>3 × 3</option><option>4 × 4</option><option>5 × 5</option></select></label>
+              <label>Terms<select><option>2</option><option>3</option><option>4</option></select></label>
+              <label>Maximum number<input type="number" value="20"></label>
+            </div>
+          </div>
+          <div class="sample-panel dark">
+            <span class="status-label">Session status</span>
+            <h3>Waiting for puzzle</h3>
+            <p>Dark panels are reserved for mission identity and major status—not every card.</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="lab-section">
+        <div class="section-heading"><div><span class="section-kicker">Gameplay</span><h2>Target board states</h2><p>The board remains the strongest visual element.</p></div></div>
+        <div class="board-stage">
+          <div class="board-grid" aria-label="Sample 3 by 3 puzzle board">
+            <div class="tile">3</div><div class="tile locked">5<small>LOCKED</small></div><div class="tile">8</div>
+            <div class="tile matched">11<small>MATCHED</small></div><div class="tile">6</div><div class="tile miss">4<small>MISS</small></div>
+            <div class="tile">7</div><div class="tile">2</div><div class="tile">9</div>
+          </div>
+        </div>
+      </article>
+
+      <article class="lab-section full">
+        <div class="section-heading"><div><span class="section-kicker">Feedback</span><h2>Equation and result states</h2><p>Every attempt must visibly explain what the player selected and what happened.</p></div></div>
+        <div class="equation-bar">
+          <span>Equation</span>
+          <strong>3 + 5 = 8</strong>
+          <div class="equation-toggle">Running sum: ON</div>
+        </div>
+        <div class="feedback-grid" style="margin-top: 14px;">
+          <div class="feedback-card locked">TARGET LOCKED<small>Selected terms glow yellow.</small></div>
+          <div class="feedback-card matched">TARGET MATCHED<small>Answer tile confirms green.</small></div>
+          <div class="feedback-card miss">MISS<small>Attempt remains visible before clearing.</small></div>
+        </div>
+      </article>
+
+      <article class="lab-section third">
+        <div class="section-heading"><div><span class="section-kicker">Players</span><h2>Score card</h2></div></div>
+        <div class="score-card">
+          <div class="score-row header"><span>Player</span><span>Score</span><span>Turn</span></div>
+          <div class="score-row active"><strong>Player 1</strong><span>4</span><span>●</span></div>
+          <div class="score-row"><strong>Player 2</strong><span>3</span><span>—</span></div>
+          <div class="score-row"><strong>Player 3</strong><span>2</span><span>—</span></div>
+        </div>
+      </article>
+
+      <article class="lab-section third">
+        <div class="section-heading"><div><span class="section-kicker">Timing</span><h2>Round timer</h2></div></div>
+        <div class="timer-wrap"><div class="timer-ring"><div><strong>00:30</strong><span>TIME REMAINING</span></div></div></div>
+      </article>
+
+      <article class="lab-section third type-sample">
+        <div class="section-heading"><div><span class="section-kicker">Typography</span><h2>Type hierarchy</h2></div></div>
+        <h1>OPERATION HUNT</h1>
+        <h2>Agent Training Console</h2>
+        <p>Find terms that combine to match another target on the board. Body copy stays readable and calm while headings carry the game identity.</p>
+      </article>
+
+      <article class="lab-section full">
+        <div class="section-heading"><div><span class="section-kicker">Foundation</span><h2>Approved color tokens</h2><p>These variables become the shared language across Demo, Smart Board, Teacher Dashboard, and mobile builds.</p></div></div>
+        <div class="token-grid">
+          <div class="token"><div class="swatch" style="background:#071a33"></div><span class="token-label">Mission Navy</span><code>#071A33</code></div>
+          <div class="token"><div class="swatch" style="background:#2463eb"></div><span class="token-label">Action Blue</span><code>#2463EB</code></div>
+          <div class="token"><div class="swatch" style="background:#138a4b"></div><span class="token-label">Success Green</span><code>#138A4B</code></div>
+          <div class="token"><div class="swatch" style="background:#e6a700"></div><span class="token-label">Target Yellow</span><code>#E6A700</code></div>
+          <div class="token"><div class="swatch" style="background:#c93636"></div><span class="token-label">Miss Red</span><code>#C93636</code></div>
+          <div class="token"><div class="swatch" style="background:#7048d7"></div><span class="token-label">Reveal Purple</span><code>#7048D7</code></div>
+          <div class="token"><div class="swatch" style="background:#f1f5f9"></div><span class="token-label">Page Gray</span><code>#F1F5F9</code></div>
+          <div class="token"><div class="swatch" style="background:#ffffff"></div><span class="token-label">Panel White</span><code>#FFFFFF</code></div>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    "use strict";
+    const body = document.body;
+    const densityButton = document.querySelector("#density-button");
+    const radiusButton = document.querySelector("#radius-button");
+    const shadowButton = document.querySelector("#shadow-button");
+
+    densityButton.addEventListener("click", () => {
+      body.classList.toggle("compact");
+      densityButton.textContent = body.classList.contains("compact") ? "Roomier spacing" : "Compact spacing";
+    });
+
+    radiusButton.addEventListener("click", () => {
+      body.classList.toggle("rounded");
+      radiusButton.textContent = body.classList.contains("rounded") ? "Sharper corners" : "Rounder corners";
+    });
+
+    shadowButton.addEventListener("click", () => {
+      body.classList.toggle("flat");
+      shadowButton.textContent = body.classList.contains("flat") ? "Restore shadows" : "Remove shadows";
+    });
+  </script>
+</body>
+</html>
