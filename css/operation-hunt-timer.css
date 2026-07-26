@@ -1,0 +1,220 @@
+/*
+====================================================
+OPERATION HUNT — TIMER COMPONENT
+Presentation-only migration adapter for Demo Mode.
+The countdown remains controlled by js/demo.js.
+====================================================
+*/
+
+.demo-page .demo-timer-card {
+  border-color: var(--oh-blue-100);
+  background: var(--oh-white);
+  box-shadow: var(--oh-shadow-sm);
+  transition:
+    border-color var(--oh-duration-normal) var(--oh-ease-standard),
+    background var(--oh-duration-normal) var(--oh-ease-standard),
+    box-shadow var(--oh-duration-normal) var(--oh-ease-standard);
+}
+
+.demo-page .demo-timer-card .timer-header {
+  background: var(--oh-blue-600);
+  color: var(--oh-white);
+}
+
+.demo-page .demo-timer-card .timer-header h2,
+.demo-page .demo-timer-card #timer-toggle-label {
+  color: var(--oh-white);
+}
+
+.demo-page .demo-timer-card .demo-duration-control {
+  color: var(--oh-gray-700);
+  font-size: var(--oh-text-xs);
+  font-weight: 900;
+}
+
+.demo-page .demo-timer-card #timer-duration {
+  width: 100%;
+  min-height: 38px;
+  padding: 0 var(--oh-space-3);
+  border: 1px solid var(--oh-gray-300);
+  border-radius: var(--oh-radius-sm);
+  background: var(--oh-white);
+  color: var(--oh-gray-950);
+  font: inherit;
+  transition:
+    border-color var(--oh-duration-fast) var(--oh-ease-standard),
+    box-shadow var(--oh-duration-fast) var(--oh-ease-standard),
+    background var(--oh-duration-fast) var(--oh-ease-standard);
+}
+
+.demo-page .demo-timer-card #timer-duration:hover:not(:disabled) {
+  border-color: var(--oh-blue-600);
+}
+
+.demo-page .demo-timer-card #timer-duration:focus-visible {
+  border-color: var(--oh-blue-600);
+  outline: 3px solid var(--oh-blue-100);
+  outline-offset: 1px;
+  box-shadow: 0 0 0 1px var(--oh-blue-600);
+}
+
+.demo-page .demo-timer-card #timer-duration:disabled {
+  cursor: not-allowed;
+  background: var(--oh-gray-100);
+  color: var(--oh-gray-500);
+  opacity: 0.7;
+}
+
+.demo-page .timer-switch {
+  position: relative;
+  min-height: var(--oh-touch-min);
+  padding: 0 var(--oh-space-1);
+  border-radius: var(--oh-radius-pill);
+  touch-action: manipulation;
+}
+
+.demo-page .timer-switch .switch-track {
+  width: 46px;
+  height: 26px;
+  border: 2px solid rgba(255, 255, 255, 0.42);
+  background: var(--oh-gray-500);
+  transition:
+    background var(--oh-duration-fast) var(--oh-ease-standard),
+    border-color var(--oh-duration-fast) var(--oh-ease-standard),
+    box-shadow var(--oh-duration-fast) var(--oh-ease-standard);
+}
+
+.demo-page .timer-switch .switch-knob {
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.32);
+}
+
+.demo-page .timer-switch input:checked + .switch-track {
+  border-color: rgba(255, 255, 255, 0.72);
+  background: var(--oh-green-600);
+}
+
+.demo-page .timer-switch input:checked + .switch-track .switch-knob {
+  transform: translateX(20px);
+}
+
+.demo-page .timer-switch input:focus-visible + .switch-track {
+  outline: 3px solid var(--oh-yellow-500);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 2px var(--oh-navy-950);
+}
+
+.demo-page .timer-switch input:disabled + .switch-track {
+  cursor: not-allowed;
+  filter: grayscale(0.6);
+  opacity: 0.58;
+}
+
+.demo-page .demo-timer-card .timer-ring {
+  --ring-color: var(--oh-blue-600);
+  box-shadow: var(--oh-shadow-sm);
+  transition:
+    background var(--oh-duration-normal) var(--oh-ease-standard),
+    box-shadow var(--oh-duration-normal) var(--oh-ease-standard),
+    transform var(--oh-duration-normal) var(--oh-ease-standard);
+}
+
+.demo-page .demo-timer-card .timer-ring-center {
+  background: var(--oh-white);
+  box-shadow: inset 0 0 0 1px var(--oh-blue-100);
+}
+
+.demo-page .demo-timer-card .timer-display {
+  color: var(--oh-navy-950);
+  font-family: var(--oh-font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.demo-page .demo-timer-card .timer-clock-icon,
+.demo-page .demo-timer-card .timer-caption {
+  color: var(--oh-gray-700);
+}
+
+.demo-page .demo-timer-card.timer-disabled {
+  border-color: var(--oh-gray-200);
+}
+
+.demo-page .demo-timer-card.timer-disabled .timer-header {
+  background: var(--oh-gray-700);
+}
+
+.demo-page .demo-timer-card.timer-disabled .timer-ring {
+  --ring-color: var(--oh-gray-500);
+  box-shadow: none;
+  opacity: 0.82;
+}
+
+.demo-page .demo-timer-card.timer-warning {
+  border-color: var(--oh-yellow-500);
+  box-shadow: 0 0 0 3px var(--oh-yellow-100), var(--oh-shadow-sm);
+}
+
+.demo-page .demo-timer-card.timer-warning .timer-header {
+  background: var(--oh-orange-600);
+}
+
+.demo-page .demo-timer-card.timer-warning .timer-ring {
+  --ring-color: var(--oh-yellow-500);
+  animation: oh-timer-warning-pulse 900ms var(--oh-ease-standard) infinite;
+}
+
+.demo-page .demo-timer-card.timer-warning .timer-display,
+.demo-page .demo-timer-card.timer-warning .timer-caption,
+.demo-page .demo-timer-card.timer-warning .timer-clock-icon {
+  color: #8a6100;
+}
+
+.demo-page .demo-timer-card.time-up {
+  border-color: var(--oh-red-600);
+  background: var(--oh-red-600);
+  box-shadow: 0 0 0 3px var(--oh-red-100), var(--oh-shadow-md);
+}
+
+.demo-page .demo-timer-card.time-up .timer-header {
+  background: var(--oh-red-600);
+}
+
+.demo-page .demo-timer-card.time-up .timer-ring {
+  --ring-color: var(--oh-red-600);
+  background: var(--oh-red-600);
+  box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.18);
+}
+
+.demo-page .demo-timer-card.time-up .timer-ring-center {
+  background: #7d0d0d;
+  box-shadow: none;
+}
+
+.demo-page .demo-timer-card.time-up .timer-display,
+.demo-page .demo-timer-card.time-up .timer-clock-icon,
+.demo-page .demo-timer-card.time-up .timer-caption,
+.demo-page .demo-timer-card.time-up label,
+.demo-page .demo-timer-card.time-up #timer-toggle-label {
+  color: var(--oh-white);
+}
+
+@keyframes oh-timer-warning-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.035); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .demo-page .demo-timer-card.timer-warning .timer-ring {
+    animation: none;
+  }
+}
+
+@media (max-width: 860px), (pointer: coarse) {
+  .demo-page .demo-timer-card #timer-duration {
+    min-height: var(--oh-touch-min);
+    font-size: var(--oh-text-md);
+  }
+}
