@@ -47,6 +47,34 @@
         );
     }
 
+    function hasExactDivisionSequence(values, resultValue) {
+        if (!Array.isArray(values) || values.length < 2) {
+            return false;
+        }
+
+        let currentValue = Number(values[0]);
+
+        for (
+            let index = 1;
+            index < values.length;
+            index += 1
+        ) {
+            const divisor = Number(values[index]);
+
+            if (
+                divisor === 0 ||
+                !Number.isInteger(currentValue) ||
+                currentValue % divisor !== 0
+            ) {
+                return false;
+            }
+
+            currentValue /= divisor;
+        }
+
+        return currentValue === resultValue;
+    }
+
     function runConfiguration(operation, configuration) {
         const { gridSize, terms } = configuration;
         const boardSize = gridSize * gridSize;
@@ -172,6 +200,64 @@
                             combination.resultIndex
                 );
             }
+
+            if (operation === engine.OPERATIONS.DIVISION) {
+                const wrongDividendOrder = [
+                    combination.termIndexes[1],
+                    combination.termIndexes[0],
+                    ...combination.termIndexes.slice(2)
+                ];
+
+                const wrongDividend = engine.findComboForSelection(
+                    operation,
+                    puzzle.numbers,
+                    wrongDividendOrder,
+                    terms,
+                    []
+                );
+
+                record(
+                    `${label}: dividend order enforced`,
+                    wrongDividend === null
+                );
+
+                const reorderedDivisors = [
+                    combination.termIndexes[0],
+                    ...combination.termIndexes.slice(1).reverse()
+                ];
+
+                const reordered = engine.findComboForSelection(
+                    operation,
+                    puzzle.numbers,
+                    reorderedDivisors,
+                    terms,
+                    []
+                );
+
+                record(
+                    `${label}: divisor order is flexible`,
+                    Boolean(reordered) &&
+                        reordered.resultIndex ===
+                            combination.resultIndex
+                );
+
+                record(
+                    `${label}: every division step is exact`,
+                    hasExactDivisionSequence(
+                        termValues,
+                        combination.resultValue
+                    ),
+                    combination.equation
+                );
+
+                record(
+                    `${label}: divide-by-zero protection`,
+                    engine.calculateResult(
+                        operation,
+                        [termValues[0], 0]
+                    ) === null
+                );
+            }
         } catch (error) {
             record(label, false, error.message);
         }
@@ -180,7 +266,8 @@
     [
         engine.OPERATIONS.ADDITION,
         engine.OPERATIONS.SUBTRACTION,
-        engine.OPERATIONS.MULTIPLICATION
+        engine.OPERATIONS.MULTIPLICATION,
+        engine.OPERATIONS.DIVISION
     ].forEach(operation => {
         getConfigurations().forEach(configuration => {
             runConfiguration(operation, configuration);
