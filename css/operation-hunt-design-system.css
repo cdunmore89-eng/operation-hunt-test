@@ -293,12 +293,96 @@
 .oh-animate-miss { animation: oh-shake 280ms var(--oh-ease-standard); }
 .oh-animate-score { animation: oh-score-bump 320ms var(--oh-ease-pop); }
 
+/*
+====================================================
+DEMO MIGRATION ADAPTER — MISSION SETUP
+Uses the shared system without changing approved IDs or logic.
+====================================================
+*/
+
+.demo-settings-panel > label[for="game-mode"],
+.demo-settings-panel .demo-settings-row > label {
+  color: var(--oh-gray-700);
+  font-size: var(--oh-text-xs);
+  font-weight: 900;
+  letter-spacing: 0.01em;
+}
+
+.demo-settings-panel #game-mode,
+.demo-settings-panel #player-count,
+.demo-settings-panel #grid-size,
+.demo-settings-panel #required-addends,
+.demo-settings-panel #minimum-number,
+.demo-settings-panel #maximum-number {
+  width: 100%;
+  min-height: 38px;
+  padding: 0 var(--oh-space-3);
+  border: 1px solid var(--oh-gray-300);
+  border-radius: var(--oh-radius-sm);
+  background: var(--oh-white);
+  color: var(--oh-gray-950);
+  font: inherit;
+  transition:
+    border-color var(--oh-duration-fast) var(--oh-ease-standard),
+    box-shadow var(--oh-duration-fast) var(--oh-ease-standard),
+    background var(--oh-duration-fast) var(--oh-ease-standard);
+}
+
+.demo-settings-panel #game-mode:hover,
+.demo-settings-panel #player-count:hover,
+.demo-settings-panel #grid-size:hover,
+.demo-settings-panel #required-addends:hover,
+.demo-settings-panel #minimum-number:hover,
+.demo-settings-panel #maximum-number:hover {
+  border-color: var(--oh-blue-600);
+}
+
+.demo-settings-panel #game-mode:focus-visible,
+.demo-settings-panel #player-count:focus-visible,
+.demo-settings-panel #grid-size:focus-visible,
+.demo-settings-panel #required-addends:focus-visible,
+.demo-settings-panel #minimum-number:focus-visible,
+.demo-settings-panel #maximum-number:focus-visible {
+  border-color: var(--oh-blue-600);
+  outline: 3px solid var(--oh-blue-100);
+  outline-offset: 1px;
+  box-shadow: 0 0 0 1px var(--oh-blue-600);
+}
+
+.demo-settings-panel #game-mode:disabled,
+.demo-settings-panel #player-count:disabled,
+.demo-settings-panel #grid-size:disabled,
+.demo-settings-panel #required-addends:disabled,
+.demo-settings-panel #minimum-number:disabled,
+.demo-settings-panel #maximum-number:disabled {
+  cursor: not-allowed;
+  background: var(--oh-gray-100);
+  color: var(--oh-gray-500);
+  opacity: 0.7;
+}
+
+.demo-settings-panel #game-mode-description {
+  color: var(--oh-gray-500);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     scroll-behavior: auto !important;
     animation-duration: 1ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 1ms !important;
+  }
+}
+
+@media (max-width: 860px), (pointer: coarse) {
+  .demo-settings-panel #game-mode,
+  .demo-settings-panel #player-count,
+  .demo-settings-panel #grid-size,
+  .demo-settings-panel #required-addends,
+  .demo-settings-panel #minimum-number,
+  .demo-settings-panel #maximum-number {
+    min-height: var(--oh-touch-min);
+    font-size: var(--oh-text-md);
   }
 }
 
