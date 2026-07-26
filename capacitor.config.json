@@ -1,0 +1,8 @@
+{
+  "appId": "com.cdunmore89.operationhunt",
+  "appName": "Operation Hunt",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}
