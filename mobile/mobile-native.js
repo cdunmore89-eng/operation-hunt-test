@@ -31,13 +31,20 @@
     );
   }
 
+  function getClosestControl(target, selector) {
+    return target instanceof Element
+      ? target.closest(selector)
+      : null;
+  }
+
   document.addEventListener(
     "visibilitychange",
     updateVisibilityState
   );
 
   document.addEventListener("contextmenu", event => {
-    const interactiveControl = event.target.closest(
+    const interactiveControl = getClosestControl(
+      event.target,
       "button, .puzzle-board, .timer-switch"
     );
 
@@ -47,7 +54,12 @@
   });
 
   document.addEventListener("dragstart", event => {
-    if (event.target.closest("button, .puzzle-board")) {
+    const draggableGameControl = getClosestControl(
+      event.target,
+      "button, .puzzle-board"
+    );
+
+    if (draggableGameControl) {
       event.preventDefault();
     }
   });
