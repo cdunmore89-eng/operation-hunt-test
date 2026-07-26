@@ -1,0 +1,19 @@
+node_modules/
+www/
+.DS_Store
+
+# Android local/build files
+android/.gradle/
+android/local.properties
+android/**/build/
+
+# iOS local/build files
+ios/App/DerivedData/
+ios/App/build/
+*.xcuserstate
+xcuserdata/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
