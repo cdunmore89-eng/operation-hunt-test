@@ -44,6 +44,11 @@ const productionFiles = [
   "mobile/mobile-native.js"
 ];
 
+const mobileOutputPaths = new Map([
+  ["mobile/mobile-native.css", "css/mobile-native.css"],
+  ["mobile/mobile-native.js", "js/mobile-native.js"]
+]);
+
 async function ensureFileExists(relativePath) {
   const sourcePath = path.join(ROOT_DIR, relativePath);
 
@@ -56,9 +61,8 @@ async function ensureFileExists(relativePath) {
 
 async function copyProductionFile(relativePath) {
   const sourcePath = path.join(ROOT_DIR, relativePath);
-  const outputRelativePath = relativePath.startsWith("mobile/")
-    ? relativePath.replace(/^mobile\//, "")
-    : relativePath;
+  const outputRelativePath =
+    mobileOutputPaths.get(relativePath) || relativePath;
   const destinationPath = path.join(OUTPUT_DIR, outputRelativePath);
 
   await mkdir(path.dirname(destinationPath), { recursive: true });
