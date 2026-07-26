@@ -1,0 +1,223 @@
+/*
+====================================================
+OPERATION HUNT — TARGET BOARD MIGRATION
+Presentation-only styling for the existing Demo board.
+====================================================
+*/
+
+.demo-radar-card {
+  border-color: var(--oh-gray-200);
+  border-radius: var(--oh-radius-lg);
+  background:
+    radial-gradient(circle at 50% 52%, rgba(36, 99, 235, 0.09), transparent 48%),
+    var(--oh-white);
+  box-shadow: var(--oh-shadow-sm);
+}
+
+.demo-puzzle-board {
+  --oh-board-gap: clamp(6px, 0.85vh, 10px);
+  gap: var(--oh-board-gap);
+  padding: clamp(8px, 1vw, 12px);
+  border: 1px solid var(--oh-gray-200);
+  border-radius: var(--oh-radius-md);
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.84), rgba(255, 255, 255, 0.84)),
+    repeating-linear-gradient(0deg, transparent 0 38px, rgba(36, 99, 235, 0.06) 39px 40px),
+    repeating-linear-gradient(90deg, transparent 0 38px, rgba(36, 99, 235, 0.06) 39px 40px),
+    var(--oh-gray-50);
+  box-shadow: inset 0 0 0 1px rgba(36, 99, 235, 0.04);
+}
+
+.demo-puzzle-board .puzzle-cell {
+  min-width: var(--oh-touch-min);
+  min-height: var(--oh-touch-min);
+  border: 3px solid #4c8f20;
+  border-radius: var(--oh-radius-md);
+  background: linear-gradient(145deg, #a9e955, #72bd27);
+  color: var(--oh-gray-950);
+  font-family: var(--oh-font-display);
+  font-variant-numeric: tabular-nums;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 5px 0 rgba(52, 99, 23, 0.26),
+    0 8px 16px rgba(41, 78, 20, 0.12);
+  isolation: isolate;
+  touch-action: manipulation;
+  transition:
+    transform var(--oh-duration-fast) var(--oh-ease-standard),
+    filter var(--oh-duration-fast) var(--oh-ease-standard),
+    background var(--oh-duration-normal) var(--oh-ease-standard),
+    border-color var(--oh-duration-normal) var(--oh-ease-standard),
+    box-shadow var(--oh-duration-normal) var(--oh-ease-standard),
+    opacity var(--oh-duration-normal) var(--oh-ease-standard);
+}
+
+.demo-puzzle-board .puzzle-cell:hover:not(:disabled) {
+  filter: brightness(1.05) saturate(1.04);
+  transform: translateY(-2px);
+}
+
+.demo-puzzle-board .puzzle-cell:active:not(:disabled) {
+  transform: translateY(3px) scale(0.985);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    0 2px 0 rgba(52, 99, 23, 0.28);
+}
+
+.demo-puzzle-board .puzzle-cell:focus-visible {
+  outline: 4px solid var(--oh-blue-600);
+  outline-offset: 3px;
+  box-shadow:
+    0 0 0 7px var(--oh-blue-100),
+    0 5px 0 rgba(52, 99, 23, 0.26),
+    0 8px 16px rgba(41, 78, 20, 0.12);
+  z-index: 4;
+}
+
+.demo-puzzle-board .puzzle-cell.selected,
+.demo-puzzle-board .puzzle-cell.target-locked {
+  border-color: #b87a00;
+  background: linear-gradient(145deg, #ffe36b, #efaa00);
+  color: #1f1600;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.58),
+    0 5px 0 rgba(159, 102, 0, 0.3),
+    0 0 0 4px rgba(230, 167, 0, 0.18),
+    0 10px 22px rgba(159, 102, 0, 0.18);
+  transform: translateY(-2px) scale(1.015);
+}
+
+.demo-puzzle-board .puzzle-cell.selected::after,
+.demo-puzzle-board .puzzle-cell.target-locked::after,
+.demo-puzzle-board .puzzle-cell.correct::after,
+.demo-puzzle-board .puzzle-cell.target-matched::after {
+  bottom: clamp(4px, 0.65vh, 8px);
+  left: 50%;
+  margin: 0;
+  max-width: calc(100% - 8px);
+  padding: 3px 7px;
+  overflow: hidden;
+  font-family: var(--oh-font-ui);
+  font-size: clamp(0.42rem, 0.62vw, 0.68rem);
+  font-weight: 900;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  z-index: 2;
+}
+
+.demo-puzzle-board .puzzle-cell.correct,
+.demo-puzzle-board .puzzle-cell.target-matched {
+  border-color: #087733;
+  background: linear-gradient(145deg, #48cf69, #118c3a);
+  color: var(--oh-white);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.42),
+    0 5px 0 rgba(5, 102, 40, 0.34),
+    0 0 0 4px rgba(19, 138, 75, 0.18),
+    0 10px 24px rgba(19, 138, 75, 0.22);
+  animation: oh-board-match 360ms var(--oh-ease-pop);
+}
+
+.demo-puzzle-board .puzzle-cell.correct::after,
+.demo-puzzle-board .puzzle-cell.target-matched::after {
+  background: rgba(255, 255, 255, 0.94);
+  color: #075d28;
+}
+
+.demo-puzzle-board.wrong .puzzle-cell:not(.correct):not(.target-matched),
+.demo-puzzle-board.time-up .puzzle-cell {
+  border-color: #a91d17;
+  background: linear-gradient(145deg, #f46960, #c9231b);
+  color: var(--oh-white);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 5px 0 rgba(135, 20, 14, 0.32);
+}
+
+.demo-puzzle-board.wrong {
+  animation: oh-board-miss 340ms var(--oh-ease-standard);
+}
+
+.demo-puzzle-board.time-up {
+  box-shadow:
+    inset 0 0 0 2px rgba(201, 54, 54, 0.18),
+    0 0 24px rgba(201, 54, 54, 0.38);
+}
+
+.demo-puzzle-board .puzzle-cell.struck,
+.demo-puzzle-board .puzzle-cell:disabled {
+  cursor: not-allowed;
+}
+
+.demo-puzzle-board .puzzle-cell.struck {
+  opacity: 0.46;
+  filter: grayscale(0.45) saturate(0.7);
+  box-shadow: none;
+}
+
+.demo-puzzle-board .puzzle-cell:disabled:not(.struck) {
+  opacity: 0.72;
+}
+
+.demo-puzzle-board.grid-size-4,
+.demo-puzzle-board.grid-size-5 {
+  --oh-board-gap: clamp(4px, 0.6vh, 7px);
+}
+
+.demo-puzzle-board.grid-size-4 .puzzle-cell,
+.demo-puzzle-board.grid-size-5 .puzzle-cell {
+  border-width: 2px;
+  border-radius: clamp(8px, 1vw, 13px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.48),
+    0 3px 0 rgba(52, 99, 23, 0.24),
+    0 5px 10px rgba(41, 78, 20, 0.1);
+}
+
+.demo-puzzle-board.grid-size-5 .puzzle-cell.selected::after,
+.demo-puzzle-board.grid-size-5 .puzzle-cell.target-locked::after,
+.demo-puzzle-board.grid-size-5 .puzzle-cell.correct::after,
+.demo-puzzle-board.grid-size-5 .puzzle-cell.target-matched::after {
+  padding: 2px 4px;
+  font-size: clamp(0.34rem, 0.46vw, 0.5rem);
+}
+
+@keyframes oh-board-match {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.075); }
+  100% { transform: scale(1); }
+}
+
+@keyframes oh-board-miss {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+@media (pointer: coarse) {
+  .demo-puzzle-board .puzzle-cell:hover:not(:disabled) {
+    filter: none;
+    transform: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .demo-puzzle-board {
+    padding: 7px;
+  }
+
+  .demo-puzzle-board .puzzle-cell:focus-visible {
+    outline-width: 3px;
+    outline-offset: 1px;
+    box-shadow: 0 0 0 4px var(--oh-blue-100);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .demo-puzzle-board,
+  .demo-puzzle-board .puzzle-cell {
+    animation: none !important;
+  }
+}
