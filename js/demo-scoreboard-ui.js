@@ -46,15 +46,10 @@ feedback. It never calculates scores or changes turns.
 
     scoreboardPanel.setAttribute("role", "region");
     scoreboardPanel.setAttribute("aria-label", "Score card");
+    scoreboardHeader.setAttribute("aria-hidden", "true");
+    scoreboard.setAttribute("role", "list");
+    scoreboard.setAttribute("aria-label", "Player scores");
 
-    scoreboardHeader.setAttribute("role", "row");
-    scoreboardHeader
-        .querySelectorAll("span")
-        .forEach(header => {
-            header.setAttribute("role", "columnheader");
-        });
-
-    scoreboard.setAttribute("role", "rowgroup");
     intelGrid.setAttribute("role", "status");
     intelGrid.setAttribute("aria-live", "polite");
     intelGrid.setAttribute("aria-atomic", "true");
@@ -103,7 +98,7 @@ feedback. It never calculates scores or changes turns.
             currentScores[index] =
                 Number.isInteger(score) ? score : 0;
 
-            row.setAttribute("role", "row");
+            row.setAttribute("role", "listitem");
             row.setAttribute(
                 "aria-label",
                 `${playerName}, score ${currentScores[index]}${
@@ -121,11 +116,9 @@ feedback. It never calculates scores or changes turns.
                     "aria-label",
                     `Player ${index + 1} name`
                 );
-                nameInput.setAttribute("role", "cell");
             }
 
             if (scoreCell) {
-                scoreCell.setAttribute("role", "cell");
                 scoreCell.setAttribute(
                     "aria-label",
                     `Score ${currentScores[index]}`
@@ -133,7 +126,6 @@ feedback. It never calculates scores or changes turns.
             }
 
             if (turnCell) {
-                turnCell.setAttribute("role", "cell");
                 turnCell.setAttribute(
                     "aria-label",
                     active ? "Current turn" : "Not current turn"
