@@ -30,8 +30,9 @@ Web assets: www/
 - `ios/` native project generated and committed
 - `android/` native project generated and committed
 - Capacitor Doctor recognizes both native projects
-- native project metadata validator available
-- compilation and device launch remain pending compatible build machines
+- native project metadata validator passes 30/30 checks
+- Android GitHub Actions compilation workflow is active
+- simulator/emulator and physical-device launch testing remain pending compatible build machines
 
 ## Toolchain requirements
 
@@ -40,6 +41,7 @@ Web assets: www/
 - macOS for iOS compilation
 - Xcode 26 or newer for iOS
 - Xcode Command Line Tools
+- JDK 21 or newer for Capacitor 8 Android compilation
 - Android Studio 2025.2.1 or newer for Android
 - Android SDK Platform Tools
 - Android SDK API 24 or newer
@@ -146,4 +148,4 @@ This mobile scaffold milestone is complete when:
 6. `npx cap doctor` recognizes iOS and Android.
 7. Operation Hunt launches in one iOS simulator and one Android emulator without missing assets or console errors.
 
-Items 1–4 and 6 are complete. Item 5 is the current checkpoint. Device launch testing remains pending compatible build machines.
+Items 1–6 are complete. Android cloud compilation and device launch testing are the active checkpoints.
