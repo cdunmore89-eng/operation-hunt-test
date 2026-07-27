@@ -18,6 +18,11 @@ function runCommand(command, args = []) {
   };
 }
 
+function parseJavaMajor(output) {
+  const match = output.match(/version\s+"(?:1\.)?(\d+)/i);
+  return match ? Number(match[1]) : null;
+}
+
 const nodeMajor = Number(process.versions.node.split(".")[0]);
 record(
   "Node.js 22+",
@@ -61,12 +66,13 @@ if (process.platform === "darwin") {
 }
 
 const java = runCommand("java", ["-version"]);
+const javaMajor = java.available ? parseJavaMajor(java.output) : null;
 record(
-  "Java runtime",
-  java.available,
+  "Java 21+",
+  java.available && javaMajor !== null && javaMajor >= 21,
   java.available
-    ? java.output.split("\n")[0]
-    : "Android Studio can install the required JDK."
+    ? `${java.output.split("\n")[0]}${javaMajor !== null && javaMajor < 21 ? " — Capacitor 8 Android compilation requires JDK 21+." : ""}`
+    : "Install JDK 21 or use Android Studio's bundled JDK."
 );
 
 const adb = runCommand("adb", ["version"]);
