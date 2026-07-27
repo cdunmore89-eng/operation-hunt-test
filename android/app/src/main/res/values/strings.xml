@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Operation Hunt</string>
+    <string name="title_activity_main">Operation Hunt</string>
+    <string name="package_name">com.cdunmore89.operationhunt</string>
+    <string name="custom_url_scheme">com.cdunmore89.operationhunt</string>
+</resources>
