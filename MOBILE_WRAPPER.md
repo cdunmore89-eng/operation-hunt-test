@@ -17,9 +17,21 @@ Do not merge native-wrapper work into `main`. The certified browser release rema
 ```text
 App name: Operation Hunt
 App ID: com.cdunmore89.operationhunt
-Version: 1.0.0
+Package version: 1.0.0
+Android version: 1.0 (code 1)
+iOS version: 1.0 (build 1)
 Web assets: www/
 ```
+
+## Current native status
+
+- Capacitor 8.4.2 dependencies installed
+- certified offline web bundle builds successfully
+- `ios/` native project generated and committed
+- `android/` native project generated and committed
+- Capacitor Doctor recognizes both native projects
+- native project metadata validator available
+- compilation and device launch remain pending compatible build machines
 
 ## Toolchain requirements
 
@@ -56,21 +68,27 @@ npm run build
 
 The build command creates a clean `www/` folder containing only the production game and mobile-shell files. It does not copy the design lab, audit pages, regression pages, or repository documentation.
 
-After the web bundle succeeds, create both native platform projects once:
+The native projects have already been initialized and committed. Do not run `npm run mobile:init` again unless one of the platform directories has intentionally been removed.
+
+## Native validation
+
+Validate package identifiers, versions, SDK targets, orientation support, secure Android defaults, display names, and Android test namespaces:
 
 ```bash
-npm run mobile:init
+npm run native:check
+```
+
+Run the complete non-compiling verification sequence:
+
+```bash
+npm run mobile:verify
 ```
 
 That command:
 
-1. rebuilds `www/`
-2. creates `ios/`
-3. creates `android/`
-4. copies the web bundle into both native projects
-5. synchronizes native dependencies
-
-Capacitor 8 uses Swift Package Manager for new iOS projects by default.
+1. rebuilds the certified `www/` bundle
+2. runs the native metadata validator
+3. runs Capacitor Doctor against both platform projects
 
 ## Normal development workflow
 
@@ -80,7 +98,7 @@ After web or mobile-shell changes:
 npm run mobile:sync
 ```
 
-Open the native projects:
+Open the native projects on compatible build machines:
 
 ```bash
 npm run mobile:open:ios
@@ -112,15 +130,20 @@ The source browser build is not edited by this process.
 ## Generated directories
 
 - `www/` is generated and ignored by Git.
-- `ios/` and `android/` will be generated during the first native initialization and should be committed after their initial configuration is verified.
+- `ios/` and `android/` are committed native source projects.
+- platform build output remains ignored by each native project's `.gitignore`.
 - `node_modules/` is generated and ignored by Git.
 
 ## Phase 4A completion rule
 
-This first mobile milestone is complete when:
+This mobile scaffold milestone is complete when:
 
 1. `npm run preflight` reports Node and npm as ready.
-2. `npm install` completes.
+2. `npm install` completes without vulnerabilities.
 3. `npm run build` creates and validates `www/index.html`.
-4. `npm run mobile:init` creates both native projects.
-5. Operation Hunt launches in one iOS simulator and one Android emulator without missing assets or console errors.
+4. both native platform projects exist and are synchronized.
+5. `npm run native:check` passes every metadata check.
+6. `npx cap doctor` recognizes iOS and Android.
+7. Operation Hunt launches in one iOS simulator and one Android emulator without missing assets or console errors.
+
+Items 1–4 and 6 are complete. Item 5 is the current checkpoint. Device launch testing remains pending compatible build machines.
