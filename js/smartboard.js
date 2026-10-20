@@ -89,12 +89,69 @@ function advancePlayer(direction = 1) {
     state.activePlayerIndex = (state.activePlayerIndex + direction + playerCount) % playerCount;
 }
 
+function getOperation() {
+    if (puzzleEngine && typeof puzzleEngine.normalizeOperation === "function") {
+        return puzzleEngine.normalizeOperation(state.settings.operation);
+    }
+
+    return state.settings.operation || "addition";
+}
+
+function getOperationMeta() {
+    if (puzzleEngine && typeof puzzleEngine.getOperation === "function") {
+        return puzzleEngine.getOperation(getOperation());
+    }
+
+    return { id: "addition", label: "Addition", symbol: "+" };
+}
+
+function getOperationSymbol() {
+    return getOperationMeta().symbol;
+}
+
+function getOperationLabel() {
+    return getOperationMeta().label;
+}
+
+function getOperationVerbPhrase() {
+    switch (getOperation()) {
+        case "subtraction":
+            return "subtract to make";
+        case "multiplication":
+            return "multiply to make";
+        case "division":
+            return "divide to make";
+        default:
+            return "add to";
+    }
+}
+
 function getSelectedValues() {
     return state.selectedIndexes.map(index => state.puzzle[index]);
 }
 
+// Left-folds the selected values, in click order, with the current
+// operation. Returns null for an inexact division fold.
+function getSelectedResult() {
+    const selectedValues = getSelectedValues();
+
+    if (selectedValues.length === 0) {
+        return 0;
+    }
+
+    if (puzzleEngine && typeof puzzleEngine.computeResult === "function") {
+        return puzzleEngine.computeResult(
+            selectedValues.map(value => Number(value || 0)),
+            getOperation()
+        );
+    }
+
+    return selectedValues.reduce((total, value) => total + Number(value || 0), 0);
+}
+
+// Historical name; now operation-aware via getSelectedResult().
 function getSelectedSum() {
-    return getSelectedValues().reduce((total, value) => total + Number(value || 0), 0);
+    return getSelectedResult();
 }
 
 function buildEquationFromSelection(options = {}) {
@@ -105,9 +162,12 @@ function buildEquationFromSelection(options = {}) {
         { length: Math.max(0, requiredAddends - selectedValues.length) },
         () => "?"
     );
-    const leftSide = [...selectedValues, ...emptySlots].join(" + ");
+    const leftSide = [...selectedValues, ...emptySlots].join(` ${getOperationSymbol()} `);
     const shouldShowResult = forceResult || (showRunningSum && selectedValues.length > 0);
-    const result = shouldShowResult ? getSelectedSum() : "?";
+    const computedResult = shouldShowResult ? getSelectedResult() : null;
+    const result = shouldShowResult
+        ? (computedResult === null ? "?" : computedResult)
+        : "?";
 
     return `${leftSide} = ${result}`;
 }
@@ -169,7 +229,9 @@ function generateFlowPuzzle(options = {}) {
             minimum: state.settings.minimumNumber,
             maximum: state.settings.maximumNumber,
             gridSize: state.settings.gridSize,
-            requiredAddends: state.settings.requiredAddends
+            requiredAddends: state.settings.requiredAddends,
+            operation: getOperation(),
+            allowNegatives: Boolean(state.settings.allowNegatives)
         });
 
         const primaryCombo = (generated.combinations || generated.triples || [])[0];
@@ -267,12 +329,20 @@ function checkAnswer() {
         state.practice.puzzlesAttempted += 1;
     }
 
-    const combo = puzzleEngine.findComboForSelection(
-        state.puzzle,
-        state.selectedIndexes,
-        state.settings.requiredAddends,
-        []
-    );
+    const combo = typeof puzzleEngine.findComboForOperation === "function"
+        ? puzzleEngine.findComboForOperation(
+            state.puzzle,
+            state.selectedIndexes,
+            state.settings.requiredAddends,
+            [],
+            getOperation()
+        )
+        : puzzleEngine.findComboForSelection(
+            state.puzzle,
+            state.selectedIndexes,
+            state.settings.requiredAddends,
+            []
+        );
 
     if (!combo) {
         handleMiss(activePlayer);
@@ -414,7 +484,7 @@ function renderGameMode() {
     };
 
     const instructions = {
-        CLASSIC: `Find ${state.settings.requiredAddends} numbers that add to another number`,
+        CLASSIC: `Find ${state.settings.requiredAddends} numbers that ${getOperationVerbPhrase()} another number`,
         MAX_OUT: "STRIKE loads the next puzzle. MISS keeps the same puzzle.",
         PRACTICE: "Untimed training. Keep hunting and build your streak."
     };
@@ -423,7 +493,7 @@ function renderGameMode() {
     document.body.classList.toggle("mode-max-out", isMaxOutMode());
     document.body.classList.toggle("mode-practice", isPracticeMode());
 
-    elements.modeLabel.textContent = labels[state.gameMode] || state.gameMode;
+    elements.modeLabel.textContent = `${labels[state.gameMode] || state.gameMode} · ${getOperationLabel()}`;
     elements.instructionText.textContent = instructions[state.gameMode] || "Find the hidden equation.";
     document.title = `Operation Hunt: ${labels[state.gameMode]} — Smart Board`;
 }

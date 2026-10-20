@@ -12,6 +12,23 @@ const GAME_MODES = Object.freeze({
     PRACTICE: "PRACTICE"
 });
 
+const OPERATION_IDS = Object.freeze([
+    "addition",
+    "subtraction",
+    "multiplication",
+    "division"
+]);
+
+const DEFAULT_OPERATION = "addition";
+const MINIMUM_FLOOR_WITH_NEGATIVES = -20;
+const MINIMUM_FLOOR_WITHOUT_NEGATIVES = 1;
+
+function normalizeOperation(value) {
+    return OPERATION_IDS.includes(value)
+        ? value
+        : DEFAULT_OPERATION;
+}
+
 const ROUND_STATUSES = Object.freeze({
     NOT_STARTED: "NOT_STARTED",
     READY: "READY",
@@ -68,7 +85,9 @@ function createDefaultState() {
             requiredAddends: DEFAULT_REQUIRED_ADDENDS,
             minimumNumber: 1,
             maximumNumber: 20,
-            showRunningSum: false
+            showRunningSum: false,
+            operation: DEFAULT_OPERATION,
+            allowNegatives: false
         },
 
         timer: {
@@ -197,6 +216,27 @@ function normalizeCombination(combo, boardLength) {
         equation: typeof combo.equation === "string" ? combo.equation : ""
     };
 
+    // Preserve the multi-operation fields when present, so a combo
+    // generated on the teacher screen keeps its operand order and
+    // operation identity when it reaches the smart board.
+    if (Array.isArray(combo.operandIndexes)) {
+        record.operandIndexes = combo.operandIndexes
+            .map(Number)
+            .filter(Number.isInteger);
+    }
+
+    if (Array.isArray(combo.operandValues)) {
+        record.operandValues = combo.operandValues.map(Number);
+    }
+
+    if (typeof combo.operation === "string") {
+        record.operation = normalizeOperation(combo.operation);
+    }
+
+    if (typeof combo.symbol === "string") {
+        record.symbol = combo.symbol;
+    }
+
     if (addendIndexes.length >= 2) {
         record.firstIndex = addendIndexes[0];
         record.secondIndex = addendIndexes[1];
@@ -293,7 +333,14 @@ function normalizeState(savedState = {}) {
             ...(savedState.settings || {}),
             gridSize,
             requiredAddends,
-            minimumNumber: Math.max(1, normalizeInteger(savedState.settings?.minimumNumber, defaults.settings.minimumNumber)),
+            operation: normalizeOperation(savedState.settings?.operation),
+            allowNegatives: Boolean(savedState.settings?.allowNegatives),
+            minimumNumber: Math.max(
+                Boolean(savedState.settings?.allowNegatives)
+                    ? MINIMUM_FLOOR_WITH_NEGATIVES
+                    : MINIMUM_FLOOR_WITHOUT_NEGATIVES,
+                normalizeInteger(savedState.settings?.minimumNumber, defaults.settings.minimumNumber)
+            ),
             maximumNumber: Math.max(2, normalizeInteger(savedState.settings?.maximumNumber, defaults.settings.maximumNumber)),
             showRunningSum: Boolean(savedState.settings?.showRunningSum)
         },
@@ -432,6 +479,35 @@ function setGameMode(gameMode) {
     return true;
 }
 
+function setOperation(operation) {
+    sharedState.settings.operation = normalizeOperation(operation);
+    resetPuzzleState();
+    resetTimerState();
+    resetMaxOutState();
+
+    saveState({ reason: "operation-changed" });
+    return sharedState.settings.operation;
+}
+
+function setAllowNegatives(allowNegatives) {
+    sharedState.settings.allowNegatives = Boolean(allowNegatives);
+
+    const minimumFloor = sharedState.settings.allowNegatives
+        ? MINIMUM_FLOOR_WITH_NEGATIVES
+        : MINIMUM_FLOOR_WITHOUT_NEGATIVES;
+
+    if (sharedState.settings.minimumNumber < minimumFloor) {
+        sharedState.settings.minimumNumber = minimumFloor;
+    }
+
+    resetPuzzleState();
+    resetTimerState();
+    resetMaxOutState();
+
+    saveState({ reason: "allow-negatives-changed" });
+    return sharedState.settings.allowNegatives;
+}
+
 function getSharedState() {
     return sharedState;
 }
@@ -483,10 +559,17 @@ window.OperationHuntState = Object.freeze({
     DEFAULT_REQUIRED_ADDENDS,
     GAME_MODES,
     ROUND_STATUSES,
+    OPERATIONS: OPERATION_IDS,
+    DEFAULT_OPERATION,
+    MINIMUM_FLOOR_WITH_NEGATIVES,
+    MINIMUM_FLOOR_WITHOUT_NEGATIVES,
+    normalizeOperation,
     getState: getSharedState,
     saveState,
     replaceState,
     resetState: resetSharedState,
     setGameMode,
+    setOperation,
+    setAllowNegatives,
     subscribe: subscribeToState
 });

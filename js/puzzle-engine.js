@@ -8,6 +8,119 @@
     const MAX_REQUIRED_ADDENDS = 4;
     const MAX_GENERATION_ATTEMPTS = 20000;
 
+    const OPERATIONS = Object.freeze({
+        addition: Object.freeze({
+            id: "addition",
+            label: "Addition",
+            symbol: "+",
+            commutative: true
+        }),
+        subtraction: Object.freeze({
+            id: "subtraction",
+            label: "Subtraction",
+            symbol: "−",
+            commutative: false
+        }),
+        multiplication: Object.freeze({
+            id: "multiplication",
+            label: "Multiplication",
+            symbol: "×",
+            commutative: true
+        }),
+        division: Object.freeze({
+            id: "division",
+            label: "Division",
+            symbol: "÷",
+            commutative: false
+        })
+    });
+
+    const DEFAULT_OPERATION = "addition";
+
+    function normalizeOperation(operation) {
+        if (
+            typeof operation === "string" &&
+            Object.prototype.hasOwnProperty.call(
+                OPERATIONS,
+                operation
+            )
+        ) {
+            return operation;
+        }
+
+        return DEFAULT_OPERATION;
+    }
+
+    function getOperation(operation) {
+        return OPERATIONS[
+            normalizeOperation(operation)
+        ];
+    }
+
+    /*
+    Left-folds operand values with the operation.
+    Returns null when the fold is not a whole number
+    (division only counts when it divides exactly at
+    every step). Subtraction may return a negative
+    value; callers decide whether that is acceptable
+    (a combo only matches a board tile, and board
+    values are always >= 1, so negatives never match).
+    */
+    function computeResult(values, operation) {
+        const normalizedOperation =
+            normalizeOperation(operation);
+
+        if (
+            !Array.isArray(values) ||
+            values.length === 0
+        ) {
+            return null;
+        }
+
+        if (normalizedOperation === "addition") {
+            return values.reduce(
+                (total, value) => total + value,
+                0
+            );
+        }
+
+        if (normalizedOperation === "multiplication") {
+            return values.reduce(
+                (total, value) => total * value,
+                1
+            );
+        }
+
+        if (normalizedOperation === "subtraction") {
+            return values.slice(1).reduce(
+                (total, value) => total - value,
+                values[0]
+            );
+        }
+
+        // division
+        let result = values[0];
+
+        for (
+            let index = 1;
+            index < values.length;
+            index += 1
+        ) {
+            const divisor = values[index];
+
+            if (
+                divisor === 0 ||
+                result % divisor !== 0
+            ) {
+                return null;
+            }
+
+            result /= divisor;
+        }
+
+        return result;
+    }
+
     function randomInteger(minimum, maximum) {
         return Math.floor(
             Math.random() * (maximum - minimum + 1)
@@ -161,20 +274,137 @@
         return smallestPossibleSum;
     }
 
+    function getMinimumMaximumForOperation(
+        minimum,
+        boardSize,
+        requiredAddends,
+        operation
+    ) {
+        const normalizedOperation =
+            normalizeOperation(operation);
+
+        const boardMinimum =
+            getMinimumMaximumForBoard(
+                minimum,
+                boardSize
+            );
+
+        if (normalizedOperation === "addition") {
+            return Math.max(
+                boardMinimum,
+                getMinimumMaximumForAddends(
+                    minimum,
+                    requiredAddends
+                )
+            );
+        }
+
+        const normalizedRequiredAddends =
+            normalizeRequiredAddends(requiredAddends);
+
+        if (normalizedOperation === "subtraction") {
+            /*
+            Smallest workable construction: the subtrahends
+            are the smallest distinct values, the difference
+            is the next distinct value, and the starting
+            number is their total. For 2 terms starting at 1
+            that is 1 + 2 = 3 (1 subtrahend, difference 2).
+            */
+            let smallestStart =
+                minimum + normalizedRequiredAddends - 1;
+
+            for (
+                let offset = 0;
+                offset < normalizedRequiredAddends - 1;
+                offset += 1
+            ) {
+                smallestStart += minimum + offset;
+            }
+
+            return Math.max(
+                boardMinimum,
+                smallestStart
+            );
+        }
+
+        if (normalizedOperation === "multiplication") {
+            /*
+            Smallest workable product of the required count
+            of distinct operands, where the product must not
+            equal an operand. For minimum = 1 and 2 terms
+            that is 2 x 3 = 6 (1 x anything equals the other
+            operand); for 3+ terms from 1 it is 1 x 2 x 3...
+            */
+            let smallestProduct;
+
+            if (minimum >= 2) {
+                smallestProduct = 1;
+
+                for (
+                    let offset = 0;
+                    offset < normalizedRequiredAddends;
+                    offset += 1
+                ) {
+                    smallestProduct *= minimum + offset;
+                }
+            } else if (normalizedRequiredAddends === 2) {
+                smallestProduct = 6;
+            } else {
+                smallestProduct = 1;
+
+                for (
+                    let factor = 2;
+                    factor <= normalizedRequiredAddends;
+                    factor += 1
+                ) {
+                    smallestProduct *= factor;
+                }
+            }
+
+            return Math.max(
+                boardMinimum,
+                smallestProduct
+            );
+        }
+
+        // division
+        /*
+        Dividend = quotient x all divisors, and the
+        quotient plus every divisor are distinct whole
+        numbers of magnitude >= 2 (a factor of 1 would make
+        the dividend equal another tile value). The smallest
+        case is the product of the required count of
+        smallest such factors: 2 x 3 = 6 for 2 terms,
+        2 x 3 x 4 = 24 for 3 terms (starting from 1).
+        */
+        const smallestFactor = Math.max(2, minimum);
+
+        let smallestDividend = 1;
+
+        for (
+            let offset = 0;
+            offset < normalizedRequiredAddends;
+            offset += 1
+        ) {
+            smallestDividend *= smallestFactor + offset;
+        }
+
+        return Math.max(
+            boardMinimum,
+            smallestDividend
+        );
+    }
+
     function getMinimumMaximumForPuzzle(
         minimum,
         boardSize,
         requiredAddends
     ) {
-        return Math.max(
-            getMinimumMaximumForBoard(
-                minimum,
-                boardSize
-            ),
-            getMinimumMaximumForAddends(
-                minimum,
-                requiredAddends
-            )
+        return getMinimumMaximumForOperation(
+            minimum,
+            boardSize,
+            requiredAddends,
+            DEFAULT_OPERATION
         );
     }
 
@@ -195,8 +425,15 @@
     function buildComboRecord(
         numbers,
         addendIndexes,
-        resultIndex
+        resultIndex,
+        operation = DEFAULT_OPERATION
     ) {
+        const normalizedOperation =
+            normalizeOperation(operation);
+
+        const operationMeta =
+            OPERATIONS[normalizedOperation];
+
         const addendValues = addendIndexes.map(
             index => numbers[index]
         );
@@ -210,13 +447,19 @@
             addendValues,
             resultValue,
 
+            operandIndexes: [...addendIndexes],
+            operandValues: [...addendValues],
+
+            operation: normalizedOperation,
+            symbol: operationMeta.symbol,
+
             indexes: [
                 ...addendIndexes,
                 resultIndex
             ],
 
             equation:
-                `${addendValues.join(" + ")} = ` +
+                `${addendValues.join(` ${operationMeta.symbol} `)} = ` +
                 `${resultValue}`
         };
 
@@ -266,14 +509,73 @@
         }
     }
 
-    function findAdditionCombinations(
+    function collectIndexPermutations(
+        indexes,
+        currentIndexes,
+        usedPositions,
+        permutations
+    ) {
+        if (currentIndexes.length === indexes.length) {
+            permutations.push([...currentIndexes]);
+            return;
+        }
+
+        for (
+            let position = 0;
+            position < indexes.length;
+            position += 1
+        ) {
+            if (usedPositions.has(position)) {
+                continue;
+            }
+
+            usedPositions.add(position);
+            currentIndexes.push(indexes[position]);
+
+            collectIndexPermutations(
+                indexes,
+                currentIndexes,
+                usedPositions,
+                permutations
+            );
+
+            currentIndexes.pop();
+            usedPositions.delete(position);
+        }
+    }
+
+    function getOperandOrders(
+        addendIndexes,
+        operation
+    ) {
+        if (getOperation(operation).commutative) {
+            return [addendIndexes];
+        }
+
+        const permutations = [];
+
+        collectIndexPermutations(
+            addendIndexes,
+            [],
+            new Set(),
+            permutations
+        );
+
+        return permutations;
+    }
+
+    function findCombinations(
         numbers,
         requiredAddends = 2,
-        excludedIndexes = []
+        excludedIndexes = [],
+        operation = DEFAULT_OPERATION
     ) {
         if (!Array.isArray(numbers)) {
             return [];
         }
+
+        const normalizedOperation =
+            normalizeOperation(operation);
 
         const normalizedRequiredAddends =
             normalizeRequiredAddends(requiredAddends);
@@ -303,40 +605,66 @@
         );
 
         const combinations = [];
+        const seenComboKeys = new Set();
 
         addendIndexCombinations.forEach(
             addendIndexes => {
                 const addendIndexSet =
                     new Set(addendIndexes);
 
-                const expectedResult =
-                    addendIndexes.reduce(
-                        (sum, index) =>
-                            sum + numbers[index],
-                        0
+                const operandOrders =
+                    getOperandOrders(
+                        addendIndexes,
+                        normalizedOperation
                     );
 
-                availableIndexes.forEach(
-                    resultIndex => {
-                        if (
-                            addendIndexSet.has(resultIndex)
-                        ) {
+                operandOrders.forEach(
+                    orderedIndexes => {
+                        const expectedResult =
+                            computeResult(
+                                orderedIndexes.map(
+                                    index => numbers[index]
+                                ),
+                                normalizedOperation
+                            );
+
+                        if (expectedResult === null) {
                             return;
                         }
 
-                        if (
-                            numbers[resultIndex] !==
-                            expectedResult
-                        ) {
-                            return;
-                        }
+                        availableIndexes.forEach(
+                            resultIndex => {
+                                if (
+                                    addendIndexSet.has(resultIndex)
+                                ) {
+                                    return;
+                                }
 
-                        combinations.push(
-                            buildComboRecord(
-                                numbers,
-                                addendIndexes,
-                                resultIndex
-                            )
+                                if (
+                                    numbers[resultIndex] !==
+                                    expectedResult
+                                ) {
+                                    return;
+                                }
+
+                                const comboKey =
+                                    `${orderedIndexes.join(",")}|${resultIndex}`;
+
+                                if (seenComboKeys.has(comboKey)) {
+                                    return;
+                                }
+
+                                seenComboKeys.add(comboKey);
+
+                                combinations.push(
+                                    buildComboRecord(
+                                        numbers,
+                                        orderedIndexes,
+                                        resultIndex,
+                                        normalizedOperation
+                                    )
+                                );
+                            }
                         );
                     }
                 );
@@ -344,6 +672,19 @@
         );
 
         return combinations;
+    }
+
+    function findAdditionCombinations(
+        numbers,
+        requiredAddends = 2,
+        excludedIndexes = []
+    ) {
+        return findCombinations(
+            numbers,
+            requiredAddends,
+            excludedIndexes,
+            "addition"
+        );
     }
 
     function findAdditionTriples(
@@ -357,11 +698,12 @@
         );
     }
 
-    function findComboForSelection(
+    function findComboForOperation(
         numbers,
         selectedIndexes,
         requiredAddends = 2,
-        excludedIndexes = []
+        excludedIndexes = [],
+        operation = DEFAULT_OPERATION
     ) {
         const normalizedRequiredAddends =
             normalizeRequiredAddends(requiredAddends);
@@ -374,29 +716,88 @@
             return null;
         }
 
-        const selectedSet =
-            new Set(selectedIndexes);
+        const normalizedOperation =
+            normalizeOperation(operation);
 
         const validCombinations =
-            findAdditionCombinations(
+            findCombinations(
                 numbers,
                 normalizedRequiredAddends,
-                excludedIndexes
+                excludedIndexes,
+                normalizedOperation
             );
+
+        /*
+        CLICK ORDER IS THE EQUATION ORDER (all operations).
+        For subtraction and division a combo matches only
+        when its ordered operand indexes equal the player's
+        selectedIndexes in the exact order clicked: clicking
+        3 then 12 does NOT strike a 12 - 3 = 9 / 12 ÷ 3 = 4
+        target. For the commutative operations (addition,
+        multiplication) any click order of the right operand
+        set scores, but the returned record is rebuilt in
+        click order so the displayed equation follows the
+        clicks.
+        */
+        if (getOperation(normalizedOperation).commutative) {
+            const selectedSet =
+                new Set(selectedIndexes);
+
+            const combo =
+                validCombinations.find(candidate => {
+                    if (
+                        candidate.addendIndexes.length !==
+                        selectedSet.size
+                    ) {
+                        return false;
+                    }
+
+                    return candidate.addendIndexes.every(
+                        index => selectedSet.has(index)
+                    );
+                });
+
+            if (!combo) {
+                return null;
+            }
+
+            return buildComboRecord(
+                numbers,
+                [...selectedIndexes],
+                combo.resultIndex,
+                normalizedOperation
+            );
+        }
 
         return (
             validCombinations.find(combo => {
                 if (
                     combo.addendIndexes.length !==
-                    selectedSet.size
+                    selectedIndexes.length
                 ) {
                     return false;
                 }
 
                 return combo.addendIndexes.every(
-                    index => selectedSet.has(index)
+                    (index, position) =>
+                        index === selectedIndexes[position]
                 );
             }) || null
+        );
+    }
+
+    function findComboForSelection(
+        numbers,
+        selectedIndexes,
+        requiredAddends = 2,
+        excludedIndexes = []
+    ) {
+        return findComboForOperation(
+            numbers,
+            selectedIndexes,
+            requiredAddends,
+            excludedIndexes,
+            "addition"
         );
     }
 
@@ -428,13 +829,15 @@
     function hasRemainingCombinations(
         numbers,
         requiredAddends = 2,
-        excludedIndexes = []
+        excludedIndexes = [],
+        operation = DEFAULT_OPERATION
     ) {
         return (
-            findAdditionCombinations(
+            findCombinations(
                 numbers,
                 requiredAddends,
-                excludedIndexes
+                excludedIndexes,
+                operation
             ).length > 0
         );
     }
@@ -465,6 +868,7 @@
 
             if (
                 result <= maximum &&
+                result >= minimum &&
                 !addends.includes(result)
             ) {
                 return {
@@ -487,6 +891,7 @@
         if (
             lowValues.length === requiredAddends &&
             lowResult <= maximum &&
+            lowResult >= minimum &&
             !lowValues.includes(lowResult)
         ) {
             return {
@@ -496,6 +901,316 @@
         }
 
         return null;
+    }
+
+    function isUsableBaseCombo(operands, result, minimum, maximum) {
+        return (
+            Number.isInteger(result) &&
+            result >= minimum &&
+            result <= maximum &&
+            operands.every(
+                value =>
+                    Number.isInteger(value) &&
+                    value >= minimum &&
+                    value <= maximum
+            ) &&
+            !operands.includes(result) &&
+            new Set(operands).size === operands.length
+        );
+    }
+
+    function deterministicBaseCombo(
+        minimum,
+        maximum,
+        requiredAddends,
+        operation
+    ) {
+        if (operation === "addition") {
+            // Ascending search with early exit; works for
+            // negative minimums where the smallest values
+            // alone would sum below the range floor.
+            const search = (startValue, chosen) => {
+                if (chosen.length === requiredAddends) {
+                    const result = computeResult(
+                        chosen,
+                        "addition"
+                    );
+
+                    return isUsableBaseCombo(
+                        chosen, result, minimum, maximum
+                    )
+                        ? { addends: [...chosen], result }
+                        : null;
+                }
+
+                for (
+                    let value = startValue;
+                    value <= maximum;
+                    value += 1
+                ) {
+                    chosen.push(value);
+
+                    const found = search(
+                        value + 1,
+                        chosen
+                    );
+
+                    if (found) {
+                        return found;
+                    }
+
+                    chosen.pop();
+                }
+
+                return null;
+            };
+
+            return search(minimum, []);
+        }
+
+        if (operation === "subtraction") {
+            // subtrahends: minimum.. ; difference: the
+            // next distinct value; start: their total.
+            const subtrahends = [];
+
+            for (
+                let offset = 0;
+                offset < requiredAddends - 1;
+                offset += 1
+            ) {
+                subtrahends.push(minimum + offset);
+            }
+
+            const result =
+                minimum + requiredAddends - 1;
+
+            const start = subtrahends.reduce(
+                (total, value) => total + value,
+                result
+            );
+
+            const operands = [start, ...subtrahends];
+
+            return isUsableBaseCombo(
+                operands, result, minimum, maximum
+            )
+                ? { addends: operands, result }
+                : null;
+        }
+
+        if (operation === "division") {
+            const smallestFactor = Math.max(2, minimum);
+
+            const divisors = [];
+
+            for (
+                let offset = 0;
+                offset < requiredAddends - 1;
+                offset += 1
+            ) {
+                divisors.push(smallestFactor + offset);
+            }
+
+            let quotient = smallestFactor;
+
+            while (divisors.includes(quotient)) {
+                quotient += 1;
+            }
+
+            const dividend = divisors.reduce(
+                (total, value) => total * value,
+                quotient
+            );
+
+            const operands = [dividend, ...divisors];
+
+            return isUsableBaseCombo(
+                operands, quotient, minimum, maximum
+            )
+                ? { addends: operands, result: quotient }
+                : null;
+        }
+
+        if (operation === "multiplication") {
+            // Smallest distinct operands whose product
+            // is not itself one of the operands. Searched
+            // ascending with early exit, so the first
+            // workable set is returned immediately.
+            const search = (startValue, chosen) => {
+                if (chosen.length === requiredAddends) {
+                    const result = computeResult(
+                        chosen,
+                        "multiplication"
+                    );
+
+                    return isUsableBaseCombo(
+                        chosen, result, minimum, maximum
+                    )
+                        ? { addends: [...chosen], result }
+                        : null;
+                }
+
+                for (
+                    let value = startValue;
+                    value <= maximum;
+                    value += 1
+                ) {
+                    chosen.push(value);
+
+                    const found = search(
+                        value + 1,
+                        chosen
+                    );
+
+                    if (found) {
+                        return found;
+                    }
+
+                    chosen.pop();
+                }
+
+                return null;
+            };
+
+            return search(minimum, []);
+        }
+
+        return null;
+    }
+
+    function chooseOperands(
+        minimum,
+        maximum,
+        requiredAddends,
+        operation,
+        allowNegatives = false
+    ) {
+        const normalizedOperation =
+            normalizeOperation(operation);
+
+        if (normalizedOperation === "addition") {
+            return (
+                chooseAddends(
+                    minimum,
+                    maximum,
+                    requiredAddends
+                ) ||
+                deterministicBaseCombo(
+                    minimum,
+                    maximum,
+                    requiredAddends,
+                    "addition"
+                )
+            );
+        }
+
+        const values = getRangeValues(
+            minimum,
+            maximum
+        );
+
+        for (
+            let attempt = 0;
+            attempt < MAX_GENERATION_ATTEMPTS;
+            attempt += 1
+        ) {
+            let operands = null;
+
+            if (normalizedOperation === "subtraction") {
+                operands = shuffle(values)
+                    .slice(0, requiredAddends);
+
+                if (!allowNegatives) {
+                    // Largest first, so the result of the
+                    // left fold stays non-negative.
+                    operands.sort((a, b) => b - a);
+                }
+                // With negatives allowed the sampled order
+                // stands, so results may be negative.
+            } else if (normalizedOperation === "multiplication") {
+                operands = shuffle(values)
+                    .slice(0, requiredAddends);
+            } else {
+                // division: sample the divisors and the
+                // quotient, then build the dividend.
+                // Factors need magnitude >= 2 (a factor of
+                // 1 or -1 would make the dividend equal
+                // another tile value, breaking uniqueness)
+                // and may never be 0.
+                const factors = shuffle(
+                    values.filter(
+                        value => Math.abs(value) >= 2
+                    )
+                );
+
+                if (
+                    factors.length <
+                    requiredAddends
+                ) {
+                    break;
+                }
+
+                const divisors = factors.slice(
+                    0,
+                    requiredAddends - 1
+                );
+
+                const quotient = factors.find(
+                    value => !divisors.includes(value)
+                );
+
+                if (quotient === undefined) {
+                    continue;
+                }
+
+                const dividend = divisors.reduce(
+                    (total, value) => total * value,
+                    quotient
+                );
+
+                operands = [dividend, ...divisors];
+
+                if (
+                    isUsableBaseCombo(
+                        operands,
+                        quotient,
+                        minimum,
+                        maximum
+                    )
+                ) {
+                    return {
+                        addends: operands,
+                        result: quotient
+                    };
+                }
+
+                continue;
+            }
+
+            const result = computeResult(
+                operands,
+                normalizedOperation
+            );
+
+            if (
+                result !== null &&
+                isUsableBaseCombo(
+                    operands, result, minimum, maximum
+                )
+            ) {
+                return {
+                    addends: operands,
+                    result
+                };
+            }
+        }
+
+        return deterministicBaseCombo(
+            minimum,
+            maximum,
+            requiredAddends,
+            normalizedOperation
+        );
     }
 
     function createNumberPuzzle(options = {}) {
@@ -512,12 +1227,18 @@
                     MIN_REQUIRED_ADDENDS,
                 gridSize
             );
+        const operation =
+            normalizeOperation(options.operation);
+        const allowNegatives =
+            Boolean(options.allowNegatives);
 
         validateRange(
             minimum,
             maximum,
             boardSize,
-            requiredAddends
+            requiredAddends,
+            operation,
+            allowNegatives
         );
 
         for (
@@ -525,10 +1246,12 @@
             attempt < MAX_GENERATION_ATTEMPTS;
             attempt += 1
         ) {
-            const baseCombo = chooseAddends(
+            const baseCombo = chooseOperands(
                 minimum,
                 maximum,
-                requiredAddends
+                requiredAddends,
+                operation,
+                allowNegatives
             );
 
             if (!baseCombo) {
@@ -567,9 +1290,11 @@
                 shuffle(numbers);
 
             const combinations =
-                findAdditionCombinations(
+                findCombinations(
                     shuffledNumbers,
-                    requiredAddends
+                    requiredAddends,
+                    [],
+                    operation
                 );
 
             if (combinations.length === 0) {
@@ -581,14 +1306,18 @@
                 triples:
                     requiredAddends === 2
                         ? combinations
-                        : findAdditionCombinations(
+                        : findCombinations(
                             shuffledNumbers,
-                            2
+                            2,
+                            [],
+                            operation
                         ),
                 combinations,
                 gridSize,
                 boardSize,
-                requiredAddends
+                requiredAddends,
+                operation,
+                allowNegatives
             };
         }
 
@@ -614,28 +1343,39 @@
         minimum,
         maximum,
         boardSize = DEFAULT_BOARD_SIZE,
-        requiredAddends = MIN_REQUIRED_ADDENDS
+        requiredAddends = MIN_REQUIRED_ADDENDS,
+        operation = DEFAULT_OPERATION,
+        allowNegatives = false
     ) {
         const normalizedBoardSize =
             normalizeBoardSize(boardSize);
         const normalizedRequiredAddends =
             normalizeRequiredAddends(requiredAddends);
         const requiredMaximum =
-            getMinimumMaximumForPuzzle(
+            getMinimumMaximumForOperation(
                 minimum,
                 normalizedBoardSize,
-                normalizedRequiredAddends
+                normalizedRequiredAddends,
+                operation
             );
+
+        const minimumFloor =
+            allowNegatives ? -20 : 1;
 
         if (
             !Number.isInteger(minimum) ||
             !Number.isInteger(maximum) ||
-            minimum < 1 ||
+            minimum < minimumFloor ||
             maximum <= minimum
         ) {
             throw new Error(
                 "Minimum and maximum must be whole numbers, " +
-                "and maximum must be greater than minimum."
+                "and maximum must be greater than minimum." +
+                (
+                    allowNegatives
+                        ? " With negatives allowed, the minimum may go down to -20."
+                        : ""
+                )
             );
         }
 
@@ -657,6 +1397,12 @@
 
     global.OperationHuntPuzzleEngine =
         Object.freeze({
+            OPERATIONS,
+            normalizeOperation,
+            getOperation,
+            computeResult,
+            findCombinations,
+            findComboForOperation,
             findAdditionCombinations,
             findAdditionTriples,
             findComboForSelection,
@@ -668,6 +1414,7 @@
             getAllowedRequiredAddends,
             getMinimumMaximumForBoard,
             getMinimumMaximumForAddends,
-            getMinimumMaximumForPuzzle
+            getMinimumMaximumForPuzzle,
+            getMinimumMaximumForOperation
         });
 })(window);

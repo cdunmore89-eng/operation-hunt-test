@@ -80,6 +80,25 @@
                     </p>
                 </div>
 
+                <label for="operation">Operation</label>
+
+                <select id="operation">
+                    <option value="addition" selected>Addition</option>
+                    <option value="subtraction">Subtraction</option>
+                    <option value="multiplication">Multiplication</option>
+                    <option value="division">Division</option>
+                </select>
+
+                <label class="timer-switch teacher-negatives-toggle">
+                    <input id="allow-negatives-toggle" type="checkbox">
+
+                    <span class="switch-track" aria-hidden="true">
+                        <span class="switch-knob"></span>
+                    </span>
+
+                    <strong>Allow Negatives</strong>
+                </label>
+
                 <label for="grid-size">Grid Size</label>
 
                 <select id="grid-size">

@@ -74,6 +74,8 @@ const state = {
         requiredAddends: DEFAULT_REQUIRED_ADDENDS,
         minimumNumber: 1,
         maximumNumber: 20,
+        operation: "addition",
+        allowNegatives: false,
         showRunningSum: false
     },
 
@@ -99,6 +101,16 @@ const elements = {
     gameMode:
         document.querySelector(
             "#game-mode"
+        ),
+
+    operation:
+        document.querySelector(
+            "#operation"
+        ),
+
+    allowNegativesToggle:
+        document.querySelector(
+            "#allow-negatives-toggle"
         ),
 
     gameModeDescription:
@@ -405,9 +417,214 @@ function advancePlayer(direction = 1) {
 
 /*
 ====================================================
+OPERATION HELPERS
+====================================================
+*/
+
+function getOperation() {
+    if (
+        puzzleEngine &&
+        typeof puzzleEngine.normalizeOperation ===
+            "function"
+    ) {
+        return puzzleEngine.normalizeOperation(
+            state.settings.operation
+        );
+    }
+
+    return state.settings.operation || "addition";
+}
+
+function getOperationMeta() {
+    if (
+        puzzleEngine &&
+        typeof puzzleEngine.getOperation ===
+            "function"
+    ) {
+        return puzzleEngine.getOperation(
+            getOperation()
+        );
+    }
+
+    return {
+        id: "addition",
+        label: "Addition",
+        symbol: "+"
+    };
+}
+
+function getOperationSymbol() {
+    return getOperationMeta().symbol;
+}
+
+function getOperationLabel() {
+    return getOperationMeta().label;
+}
+
+/*
+Verb phrase used in the instruction text, so the
+sentence reads e.g. "Find 2 numbers that add to
+another number..." / "...that divide to make
+another number...".
+*/
+function getOperationVerbPhrase() {
+    switch (getOperation()) {
+        case "subtraction":
+            return "subtract to make";
+        case "multiplication":
+            return "multiply to make";
+        case "division":
+            return "divide to make";
+        default:
+            return "add to";
+    }
+}
+
+function findComboForCurrentOperation(
+    numbers,
+    selectedIndexes,
+    requiredAddends,
+    excludedIndexes
+) {
+    if (
+        puzzleEngine &&
+        typeof puzzleEngine.findComboForOperation ===
+            "function"
+    ) {
+        return puzzleEngine.findComboForOperation(
+            numbers,
+            selectedIndexes,
+            requiredAddends,
+            excludedIndexes,
+            getOperation()
+        );
+    }
+
+    return puzzleEngine.findComboForSelection(
+        numbers,
+        selectedIndexes,
+        requiredAddends,
+        excludedIndexes
+    );
+}
+
+/*
+====================================================
 MODE CONTROL
 ====================================================
 */
+
+function updateOperation() {
+    if (!elements.operation) {
+        return;
+    }
+
+    const selectedOperation =
+        getOperationMetaForValue(
+            elements.operation.value
+        );
+
+    if (
+        selectedOperation ===
+        getOperation()
+    ) {
+        elements.operation.value =
+            getOperation();
+
+        return;
+    }
+
+    const confirmed =
+        !puzzleExists() ||
+        window.confirm(
+            "Changing the operation will clear the current puzzle. Continue?"
+        );
+
+    if (!confirmed) {
+        elements.operation.value =
+            getOperation();
+
+        return;
+    }
+
+    clearFeedbackTimeout();
+    stopTimer();
+    resetPuzzleState();
+
+    state.settings.operation =
+        selectedOperation;
+
+    // The maximum may need to rise for the new
+    // operation (e.g. multiplication / division).
+    enforceNumberRangeForGrid();
+
+    render();
+}
+
+function getMinimumFloor() {
+    return state.settings.allowNegatives
+        ? -20
+        : 1;
+}
+
+function updateAllowNegatives() {
+    if (!elements.allowNegativesToggle) {
+        return;
+    }
+
+    const selectedValue =
+        Boolean(
+            elements.allowNegativesToggle.checked
+        );
+
+    if (
+        selectedValue ===
+        state.settings.allowNegatives
+    ) {
+        return;
+    }
+
+    const confirmed =
+        !puzzleExists() ||
+        window.confirm(
+            "Changing Allow Negatives will clear the current puzzle. Continue?"
+        );
+
+    if (!confirmed) {
+        elements.allowNegativesToggle.checked =
+            state.settings.allowNegatives;
+
+        return;
+    }
+
+    clearFeedbackTimeout();
+    stopTimer();
+
+    state.settings.allowNegatives =
+        selectedValue;
+
+    resetPuzzleState();
+    resetTimerToDuration();
+
+    // Re-clamps the minimum to the new floor (1 when
+    // negatives are off, -20 when they are on) and
+    // raises the maximum if the operation needs it.
+    enforceNumberRangeForGrid();
+
+    render();
+}
+
+function getOperationMetaForValue(value) {
+    if (
+        puzzleEngine &&
+        typeof puzzleEngine.normalizeOperation ===
+            "function"
+    ) {
+        return puzzleEngine.normalizeOperation(value);
+    }
+
+    return value || "addition";
+}
 
 function updateGameMode() {
     const selectedMode =
@@ -467,19 +684,21 @@ function renderGameMode() {
     elements.gameInstructions
         .textContent =
         practice
-            ? `Practice finding ${state.settings.requiredAddends} numbers that add to a target. Keep going until the session is reset.`
+            ? `Practice finding ${state.settings.requiredAddends} numbers that ${getOperationVerbPhrase()} a target. Keep going until the session is reset.`
             : maxOut
-                ? `Find ${state.settings.requiredAddends} numbers that add to a target. Solve as many as possible before time expires.`
-                : `Find ${state.settings.requiredAddends} numbers that add to another number on the radar and strike the target.`;
+                ? `Find ${state.settings.requiredAddends} numbers that ${getOperationVerbPhrase()} a target. Solve as many as possible before time expires.`
+                : `Find ${state.settings.requiredAddends} numbers that ${getOperationVerbPhrase()} another number on the radar and strike the target.`;
 
     if (elements.footerModeLabel) {
         elements.footerModeLabel
             .textContent =
-            practice
-                ? "Practice Training Active"
-                : maxOut
-                    ? "Max Out Training Active"
-                    : "Classic Hunt Training Active";
+            (
+                practice
+                    ? "Practice Training Active"
+                    : maxOut
+                        ? "Max Out Training Active"
+                        : "Classic Hunt Training Active"
+            ) + ` · ${getOperationLabel()}`;
     }
 
     document.body.classList.toggle(
@@ -616,9 +835,24 @@ function syncRequiredAddendsOptions(gridSize) {
 function getRequiredMaximumForSettings(
     minimum,
     gridSize,
-    requiredAddends
+    requiredAddends,
+    operation = getOperation()
 ) {
     const boardSize = gridSize * gridSize;
+
+    if (
+        puzzleEngine &&
+        typeof puzzleEngine.getMinimumMaximumForOperation ===
+            "function"
+    ) {
+        return puzzleEngine
+            .getMinimumMaximumForOperation(
+                minimum,
+                boardSize,
+                requiredAddends,
+                operation
+            );
+    }
 
     if (
         puzzleEngine &&
@@ -650,12 +884,17 @@ function enforceNumberRangeForGrid() {
             10
         );
 
+    const minimumFloor = getMinimumFloor();
+
     if (
         !Number.isInteger(minimum) ||
-        minimum < 1
+        minimum < minimumFloor
     ) {
-        minimum = 1;
+        minimum = minimumFloor;
     }
+
+    elements.minimumNumber.min =
+        String(minimumFloor);
 
     const requiredMaximum =
         getRequiredMaximumForSettings(
@@ -711,7 +950,7 @@ function readNumberSettings() {
     if (
         !Number.isInteger(settings.minimum) ||
         !Number.isInteger(settings.maximum) ||
-        settings.minimum < 1 ||
+        settings.minimum < getMinimumFloor() ||
         settings.maximum <= settings.minimum
     ) {
         throw new Error(
@@ -779,7 +1018,10 @@ function generatePuzzle(options = {}) {
                     minimum: settings.minimum,
                     maximum: settings.maximum,
                     gridSize: settings.gridSize,
-                    requiredAddends: settings.requiredAddends
+                    requiredAddends: settings.requiredAddends,
+                    operation: getOperation(),
+                    allowNegatives:
+                        state.settings.allowNegatives
                 });
 
         const primaryTriple =
@@ -962,13 +1204,12 @@ CLASSIC HUNT
 
 function checkClassicAnswer(player) {
     const triple =
-        puzzleEngine
-            .findComboForSelection(
-                state.puzzle,
-                state.selectedIndexes,
-                state.settings.requiredAddends,
-                []
-            );
+        findComboForCurrentOperation(
+            state.puzzle,
+            state.selectedIndexes,
+            state.settings.requiredAddends,
+            []
+        );
 
     if (!triple) {
         handleMiss(player);
@@ -1015,13 +1256,12 @@ MAX OUT
 
 function checkFlowAnswer(player) {
     const triple =
-        puzzleEngine
-            .findComboForSelection(
-                state.puzzle,
-                state.selectedIndexes,
-                state.settings.requiredAddends,
-                []
-            );
+        findComboForCurrentOperation(
+            state.puzzle,
+            state.selectedIndexes,
+            state.settings.requiredAddends,
+            []
+        );
 
     if (!triple) {
         handleMiss(player);
@@ -1126,12 +1366,23 @@ function revealAnswer() {
 
     const triples =
         isFlowMode()
-            ? puzzleEngine
-                .findAdditionCombinations(
-                    state.puzzle,
-                    state.settings.requiredAddends,
-                    state.struckIndexes
-                )
+            ? (
+                typeof puzzleEngine.findCombinations ===
+                    "function"
+                    ? puzzleEngine
+                        .findCombinations(
+                            state.puzzle,
+                            state.settings.requiredAddends,
+                            state.struckIndexes,
+                            getOperation()
+                        )
+                    : puzzleEngine
+                        .findAdditionCombinations(
+                            state.puzzle,
+                            state.settings.requiredAddends,
+                            state.struckIndexes
+                        )
+            )
             : state.validCombinations;
 
     const triple =
@@ -1614,13 +1865,43 @@ function getSelectedValues() {
     );
 }
 
-function getSelectedSum() {
-    return getSelectedValues()
-        .reduce(
-            (total, value) =>
-                total + Number(value || 0),
-            0
+/*
+Left-folds the selected values, in click order, with
+the current operation. Returns null when the fold is
+not a whole number (inexact division), so the display
+can show "?" instead of a fraction.
+*/
+function getSelectedResult() {
+    const selectedValues = getSelectedValues();
+
+    if (selectedValues.length === 0) {
+        return 0;
+    }
+
+    if (
+        puzzleEngine &&
+        typeof puzzleEngine.computeResult ===
+            "function"
+    ) {
+        return puzzleEngine.computeResult(
+            selectedValues.map(
+                value => Number(value || 0)
+            ),
+            getOperation()
         );
+    }
+
+    return selectedValues.reduce(
+        (total, value) =>
+            total + Number(value || 0),
+        0
+    );
+}
+
+// Kept for the running-result display; despite the
+// historical name this is now operation-aware.
+function getSelectedSum() {
+    return getSelectedResult();
 }
 
 function buildEquationFromSelection(options = {}) {
@@ -1645,7 +1926,7 @@ function buildEquationFromSelection(options = {}) {
 
     const leftSide =
         [...selectedValues, ...emptySlots]
-            .join(" + ");
+            .join(` ${getOperationSymbol()} `);
 
     const shouldShowResult =
         forceResult ||
@@ -1654,8 +1935,16 @@ function buildEquationFromSelection(options = {}) {
             selectedValues.length > 0
         );
 
+    const computedResult = shouldShowResult
+        ? getSelectedResult()
+        : null;
+
     const result = shouldShowResult
-        ? getSelectedSum()
+        ? (
+            computedResult === null
+                ? "?"
+                : computedResult
+        )
         : "?";
 
     return `${leftSide} = ${result}`;
@@ -1912,6 +2201,19 @@ function renderSummary() {
 }
 
 function renderSettings() {
+    if (elements.operation) {
+        elements.operation.value =
+            getOperation();
+    }
+
+    if (elements.allowNegativesToggle) {
+        elements.allowNegativesToggle.checked =
+            state.settings.allowNegatives;
+    }
+
+    elements.minimumNumber.min =
+        String(getMinimumFloor());
+
     elements.playerCount.value =
         String(state.playerCount);
 
@@ -2054,6 +2356,20 @@ function connectEvents() {
         "change",
         updateGameMode
     );
+
+    if (elements.operation) {
+        elements.operation.addEventListener(
+            "change",
+            updateOperation
+        );
+    }
+
+    if (elements.allowNegativesToggle) {
+        elements.allowNegativesToggle.addEventListener(
+            "change",
+            updateAllowNegatives
+        );
+    }
 
     elements.newPuzzleButton.addEventListener(
         "click",

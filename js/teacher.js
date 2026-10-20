@@ -32,6 +32,9 @@ const elements = {
     resetSessionButton: document.querySelector("#reset-session-button"),
     resetBoardButton: document.querySelector("#reset-board-button"),
 
+    operation: document.querySelector("#operation"),
+    allowNegativesToggle: document.querySelector("#allow-negatives-toggle"),
+
     playerCount: document.querySelector("#player-count"),
     gridSize: document.querySelector("#grid-size"),
     requiredAddends: document.querySelector("#required-addends"),
@@ -118,8 +121,45 @@ function startTimer() {
     state.timer.endTime = Date.now() + state.timer.duration * 1000;
 }
 
+function getOperation() {
+    if (puzzleEngine && typeof puzzleEngine.normalizeOperation === "function") {
+        return puzzleEngine.normalizeOperation(state.settings.operation);
+    }
+
+    return state.settings.operation || "addition";
+}
+
+function getOperationMeta() {
+    if (puzzleEngine && typeof puzzleEngine.getOperation === "function") {
+        return puzzleEngine.getOperation(getOperation());
+    }
+
+    return { id: "addition", label: "Addition", symbol: "+" };
+}
+
+function getOperationSymbol() {
+    return getOperationMeta().symbol;
+}
+
+function getOperationLabel() {
+    return getOperationMeta().label;
+}
+
+function getMinimumFloor() {
+    return state.settings.allowNegatives ? -20 : 1;
+}
+
 function getRequiredMaximumForSettings(minimum, gridSize, requiredAddends) {
     const boardSize = Number(gridSize) * Number(gridSize);
+
+    if (puzzleEngine.getMinimumMaximumForOperation) {
+        return puzzleEngine.getMinimumMaximumForOperation(
+            minimum,
+            boardSize,
+            requiredAddends,
+            getOperation()
+        );
+    }
 
     if (puzzleEngine.getMinimumMaximumForPuzzle) {
         return puzzleEngine.getMinimumMaximumForPuzzle(
@@ -164,9 +204,10 @@ function readNumberSettings() {
     const minimum = Number.parseInt(elements.minimumNumber.value, 10);
     let maximum = Number.parseInt(elements.maximumNumber.value, 10);
     const boardSize = gridSize * gridSize;
+    const minimumFloor = getMinimumFloor();
 
-    if (!Number.isInteger(minimum) || minimum < 1) {
-        throw new Error("Minimum number must be a whole number 1 or greater.");
+    if (!Number.isInteger(minimum) || minimum < minimumFloor) {
+        throw new Error(`Minimum number must be a whole number ${minimumFloor} or greater.`);
     }
 
     const requiredMaximum = getRequiredMaximumForSettings(
@@ -185,8 +226,11 @@ function readNumberSettings() {
     state.settings.minimumNumber = minimum;
     state.settings.maximumNumber = maximum;
     state.settings.showRunningSum = Boolean(elements.runningSumToggle?.checked);
+    state.settings.operation = getOperation();
+    state.settings.allowNegatives = Boolean(state.settings.allowNegatives);
 
     elements.maximumNumber.min = String(requiredMaximum);
+    elements.minimumNumber.min = String(minimumFloor);
 
     return {
         gridSize,
@@ -257,7 +301,9 @@ function generatePuzzle(options = {}) {
             minimum: settings.minimum,
             maximum: settings.maximum,
             gridSize: settings.gridSize,
-            requiredAddends: settings.requiredAddends
+            requiredAddends: settings.requiredAddends,
+            operation: getOperation(),
+            allowNegatives: Boolean(state.settings.allowNegatives)
         });
 
         const primaryCombo = (generated.combinations || generated.triples || [])[0];
@@ -307,11 +353,18 @@ function revealAnswer() {
         return;
     }
 
-    const combos = puzzleEngine.findAdditionCombinations(
-        state.puzzle,
-        state.settings.requiredAddends,
-        []
-    );
+    const combos = typeof puzzleEngine.findCombinations === "function"
+        ? puzzleEngine.findCombinations(
+            state.puzzle,
+            state.settings.requiredAddends,
+            [],
+            getOperation()
+        )
+        : puzzleEngine.findAdditionCombinations(
+            state.puzzle,
+            state.settings.requiredAddends,
+            []
+        );
 
     const combo = combos[0];
 
@@ -402,6 +455,107 @@ function updateGameMode() {
     }
 
     saveState("teacher-mode-updated");
+    render();
+}
+
+function updateOperation() {
+    if (!elements.operation) {
+        return;
+    }
+
+    const selectedOperation = puzzleEngine.normalizeOperation
+        ? puzzleEngine.normalizeOperation(elements.operation.value)
+        : elements.operation.value;
+
+    if (selectedOperation === getOperation()) {
+        elements.operation.value = getOperation();
+        return;
+    }
+
+    const confirmed = !puzzleExists() || window.confirm(
+        "Changing the operation will clear the current puzzle. Continue?"
+    );
+
+    if (!confirmed) {
+        elements.operation.value = getOperation();
+        return;
+    }
+
+    stopTimer();
+
+    if (typeof stateApi.setOperation === "function") {
+        // setOperation updates the shared setting, resets the shared
+        // puzzle/timer/max-out state and saves + broadcasts.
+        stateApi.setOperation(selectedOperation);
+    } else {
+        state.settings.operation = selectedOperation;
+        resetPuzzleState();
+        resetTimerToDuration();
+        saveState("teacher-operation-updated");
+    }
+
+    // The maximum may need to rise for the new operation; this also
+    // re-syncs state.settings from the controls.
+    try {
+        readNumberSettings();
+    } catch (error) {
+        // Keep the teacher's typed values; generation validates too.
+    }
+
+    saveState("teacher-operation-updated");
+    render();
+}
+
+function updateAllowNegatives() {
+    if (!elements.allowNegativesToggle) {
+        return;
+    }
+
+    const selectedValue = Boolean(elements.allowNegativesToggle.checked);
+
+    if (selectedValue === Boolean(state.settings.allowNegatives)) {
+        return;
+    }
+
+    const confirmed = !puzzleExists() || window.confirm(
+        "Changing Allow Negatives will clear the current puzzle. Continue?"
+    );
+
+    if (!confirmed) {
+        elements.allowNegativesToggle.checked = Boolean(state.settings.allowNegatives);
+        return;
+    }
+
+    stopTimer();
+
+    if (typeof stateApi.setAllowNegatives === "function") {
+        // Also re-clamps the minimum to the new floor in shared state.
+        stateApi.setAllowNegatives(selectedValue);
+    } else {
+        state.settings.allowNegatives = selectedValue;
+
+        if (state.settings.minimumNumber < getMinimumFloor()) {
+            state.settings.minimumNumber = getMinimumFloor();
+        }
+
+        resetPuzzleState();
+        resetTimerToDuration();
+        saveState("teacher-negatives-updated");
+    }
+
+    elements.minimumNumber.min = String(getMinimumFloor());
+
+    // Reflect a possibly re-clamped minimum in the input, and let the
+    // operation-aware required maximum raise the maximum if needed.
+    elements.minimumNumber.value = String(state.settings.minimumNumber);
+
+    try {
+        readNumberSettings();
+    } catch (error) {
+        // Keep the teacher's typed values; generation validates too.
+    }
+
+    saveState("teacher-negatives-updated");
     render();
 }
 
@@ -502,7 +656,7 @@ function renderGameMode() {
     document.body.classList.toggle("mode-practice", isPracticeMode());
 
     elements.gameMode.value = state.gameMode;
-    elements.teacherModeLabel.textContent = labels[state.gameMode] || state.gameMode;
+    elements.teacherModeLabel.textContent = `${labels[state.gameMode] || state.gameMode} · ${getOperationLabel()}`;
     elements.gameModeDescription.textContent = descriptions[state.gameMode] || "";
 }
 
@@ -519,9 +673,18 @@ function renderSettings() {
     );
 
     elements.maximumNumber.min = String(requiredMaximum);
+    elements.minimumNumber.min = String(getMinimumFloor());
     elements.minimumNumber.value = String(state.settings.minimumNumber);
     elements.maximumNumber.value = String(Math.max(state.settings.maximumNumber, requiredMaximum));
     elements.runningSumToggle.checked = Boolean(state.settings.showRunningSum);
+
+    if (elements.operation) {
+        elements.operation.value = getOperation();
+    }
+
+    if (elements.allowNegativesToggle) {
+        elements.allowNegativesToggle.checked = Boolean(state.settings.allowNegatives);
+    }
     elements.timerToggle.checked = Boolean(state.timer.enabled) && !isPracticeMode();
     elements.timerDuration.value = String(state.timer.duration);
 
@@ -683,6 +846,14 @@ function connectEvents() {
     elements.nextPlayerButton.addEventListener("click", () => movePlayer(1));
     elements.resetSessionButton.addEventListener("click", resetSession);
     elements.resetBoardButton.addEventListener("click", resetBoard);
+
+    if (elements.operation) {
+        elements.operation.addEventListener("change", updateOperation);
+    }
+
+    if (elements.allowNegativesToggle) {
+        elements.allowNegativesToggle.addEventListener("change", updateAllowNegatives);
+    }
 
     elements.playerCount.addEventListener("change", updatePlayerCount);
     elements.gridSize.addEventListener("change", updateGridSize);
