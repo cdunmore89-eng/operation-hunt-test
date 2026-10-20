@@ -1225,3 +1225,23 @@ SYNCED DEMO ENGINE — DYNAMIC SMART BOARD GRIDS
 .smartboard-page.mode-practice .smartboard-timer {
     opacity: 0.72;
 }
+
+/*
+Algebra expression faces: length-tiered scaling with a
+legibility floor, sized for the back of the classroom.
+*/
+.smartboard-puzzle-board .puzzle-cell.face-tier-1 {
+    font-size: clamp(2.4rem, 8vh, 6.8rem);
+}
+
+.smartboard-puzzle-board .puzzle-cell.face-tier-2 {
+    font-size: clamp(1.9rem, 6.4vh, 5.4rem);
+}
+
+.smartboard-puzzle-board .puzzle-cell.face-tier-3 {
+    font-size: clamp(1.55rem, 5.2vh, 4.4rem);
+}
+
+.smartboard-puzzle-board .puzzle-cell.face-tier-4 {
+    font-size: clamp(1.3rem, 4.4vh, 3.7rem);
+}

@@ -66,6 +66,12 @@
             <section class="teacher-settings-card">
                 <h2>Game Settings</h2>
 
+                    <div class="content-control" role="group" aria-label="Content">
+                      <button id="content-arithmetic-button" class="content-button" type="button">Arithmetic</button>
+                      <button id="content-algebra-button" class="content-button" type="button">Algebra</button>
+                    </div>
+
+
                 <div class="teacher-mode-control">
                     <label for="game-mode">Game Mode</label>
 
@@ -78,6 +84,7 @@
                     <p id="game-mode-description">
                         Solve one target equation per puzzle.
                     </p>
+                    <p id="algebra-flow-note" class="algebra-setting-note" hidden>Algebra Mode uses Classic Hunt in this build.</p>
                 </div>
 
                 <label for="operation">Operation</label>
@@ -98,6 +105,31 @@
 
                     <strong>Allow Negatives</strong>
                 </label>
+
+
+          <div id="algebra-settings" class="algebra-settings" hidden>
+            <label for="grade-band">Grade Band</label>
+            <select id="grade-band">
+              <option value="k-2">K–2</option>
+              <option value="3-5">3–5</option>
+              <option value="6-8">6–8</option>
+            </select>
+
+            <label for="algebra-skill">Algebra Skill</label>
+            <select id="algebra-skill"></select>
+
+            <div id="solve-steps-field" hidden>
+              <label for="solve-steps">Equation Steps</label>
+              <select id="solve-steps">
+                <option value="one-step">One-step</option>
+                <option value="two-step">Two-step</option>
+                <option value="mixed">Mixed</option>
+              </select>
+            </div>
+
+            <p id="band-range-text" class="algebra-setting-note"></p>
+            <p id="algebra-skill-description" class="algebra-setting-note"></p>
+          </div>
 
                 <label for="grid-size">Grid Size</label>
 
@@ -240,6 +272,12 @@
             </section>
 
             <section class="teacher-detail-grid">
+                <article id="algebra-banner" class="teacher-detail-card algebra-banner" hidden>
+                    <span id="algebra-banner-kicker">Algebra</span>
+                    <strong id="algebra-banner-text"></strong>
+                    <span id="algebra-banner-detail"></span>
+                </article>
+
                 <article class="teacher-detail-card">
                     <span>Current Puzzle</span>
                     <strong id="current-puzzle-display">No puzzle generated</strong>
@@ -260,6 +298,7 @@
 
     <script src="js/shared-state.js"></script>
     <script src="js/puzzle-engine.js"></script>
+    <script src="js/algebra-engine.js"></script>
     <script src="js/teacher.js"></script>
 </body>
 

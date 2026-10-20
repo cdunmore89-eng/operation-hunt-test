@@ -99,6 +99,12 @@
         <section class="demo-panel demo-settings-panel">
           <h2>Mission Setup</h2>
 
+          <div class="content-control" role="group" aria-label="Content">
+            <button id="content-arithmetic-button" class="content-button" type="button">Arithmetic</button>
+            <button id="content-algebra-button" class="content-button" type="button">Algebra</button>
+          </div>
+
+
           <label for="game-mode">Game Mode</label>
           <select id="game-mode">
             <option value="CLASSIC">Classic Hunt</option>
@@ -107,6 +113,7 @@
           </select>
 
           <p id="game-mode-description">Complete one target equation per puzzle.</p>
+          <p id="algebra-flow-note" class="algebra-setting-note" hidden>Algebra Mode uses Classic Hunt in this build.</p>
 
           <label for="operation">Operation</label>
           <select id="operation">
@@ -123,6 +130,31 @@
             </span>
             <strong>Allow Negatives</strong>
           </label>
+
+
+          <div id="algebra-settings" class="algebra-settings" hidden>
+            <label for="grade-band">Grade Band</label>
+            <select id="grade-band">
+              <option value="k-2">K–2</option>
+              <option value="3-5">3–5</option>
+              <option value="6-8">6–8</option>
+            </select>
+
+            <label for="algebra-skill">Algebra Skill</label>
+            <select id="algebra-skill"></select>
+
+            <div id="solve-steps-field" hidden>
+              <label for="solve-steps">Equation Steps</label>
+              <select id="solve-steps">
+                <option value="one-step">One-step</option>
+                <option value="two-step">Two-step</option>
+                <option value="mixed">Mixed</option>
+              </select>
+            </div>
+
+            <p id="band-range-text" class="algebra-setting-note"></p>
+            <p id="algebra-skill-description" class="algebra-setting-note"></p>
+          </div>
 
           <div class="demo-settings-row">
             <label class="setting-player-count">
@@ -216,6 +248,12 @@
               <span>MODE</span>
               <b class="demo-footer-mode-label">Classic Hunt Training Active</b>
             </div>
+          </div>
+
+          <div id="algebra-banner" class="algebra-banner" hidden>
+            <span id="algebra-banner-kicker"></span>
+            <strong id="algebra-banner-text"></strong>
+            <span id="algebra-banner-detail"></span>
           </div>
 
           <div id="puzzle-board" class="puzzle-board demo-puzzle-board grid-size-2" aria-label="Operation Hunt puzzle board"></div>
@@ -321,6 +359,7 @@
   </main>
 
   <script src="js/puzzle-engine.js"></script>
+  <script src="js/algebra-engine.js"></script>
   <script src="js/demo.js"></script>
 
 </body>

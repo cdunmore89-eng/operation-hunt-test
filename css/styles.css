@@ -3279,3 +3279,82 @@ VIEWPORT SAFETY
             0.001ms !important;
     }
 }
+/*
+====================================================
+ALGEBRA MODE (fourth pass)
+====================================================
+*/
+
+.content-control {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0.5rem 0 0.75rem;
+}
+
+.content-button {
+    flex: 1;
+    padding: 0.55rem 0.75rem;
+    border: 2px solid rgba(16, 28, 43, 0.25);
+    border-radius: 10px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.content-button.active {
+    background: #78c62e;
+    border-color: #4d8a17;
+    color: #101c2b;
+}
+
+.algebra-settings {
+    margin-top: 0.75rem;
+}
+
+.algebra-setting-note {
+    margin: 0.35rem 0;
+    font-size: 0.85rem;
+    line-height: 1.35;
+    opacity: 0.85;
+}
+
+.algebra-banner {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    align-items: center;
+    text-align: center;
+    margin: 0.5rem 0;
+    padding: 0.6rem 0.9rem;
+    border-radius: 12px;
+    background: #101c2b;
+    color: #ffffff;
+}
+
+.algebra-banner strong {
+    font-size: clamp(1.3rem, 3vw, 2.1rem);
+    line-height: 1.15;
+}
+
+.algebra-banner span {
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    opacity: 0.85;
+}
+
+.algebra-banner[hidden],
+.algebra-settings[hidden],
+#solve-steps-field[hidden],
+#algebra-flow-note[hidden],
+select[hidden],
+label[hidden],
+input[hidden] {
+    display: none !important;
+}
+
+.puzzle-cell.algebra-tile {
+    white-space: nowrap;
+}

@@ -1663,3 +1663,23 @@ usable on phones and small tablets.
     font-size: 0.82rem !important;
   }
 }
+
+/*
+Algebra expression faces: length-tiered scaling on top of
+the board's normal cell size, with a legibility floor.
+*/
+.demo-puzzle-board .puzzle-cell.face-tier-1 {
+  font-size: clamp(1.6rem, calc(var(--cell-font-size, 10vh) * 0.72), 5.8rem);
+}
+
+.demo-puzzle-board .puzzle-cell.face-tier-2 {
+  font-size: clamp(1.3rem, calc(var(--cell-font-size, 10vh) * 0.56), 4.6rem);
+}
+
+.demo-puzzle-board .puzzle-cell.face-tier-3 {
+  font-size: clamp(1.1rem, calc(var(--cell-font-size, 10vh) * 0.44), 3.6rem);
+}
+
+.demo-puzzle-board .puzzle-cell.face-tier-4 {
+  font-size: clamp(1rem, calc(var(--cell-font-size, 10vh) * 0.36), 3rem);
+}

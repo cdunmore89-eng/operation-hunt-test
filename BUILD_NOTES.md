@@ -508,3 +508,211 @@ Teacher + Smart Board (two targets, one browser):
   from the kept board's solution set recomputation, so that
   combo could be struck again on the kept board. Cosmetic
   rules edge, only reachable mid-animation.
+
+## Algebra Mode (fourth pass, 2026-10-20)
+
+Built to `~/workspace/operation-hunt/ALGEBRA_MODE_DESIGN.md`
+exactly, including Clarence's four approved decisions:
+(1) K–2 unknowns are shapes (□, ★), letters from grade 3;
+(2) Solve for x starts in 3–5 with one-step equations,
+two-step only in 6–8; (3) exactly-one-solution is strict
+in Algebra Mode (arithmetic keeps its any-valid-equation
+rule, untouched); (4) 6–8 two-step defaults to Mixed with a
+Steps knob (One-step / Two-step / Mixed) on the panel.
+**Not pushed to GitHub** — local build only, awaiting
+Clarence's go-ahead.
+
+### Architecture
+
+Algebra Mode is a sibling engine, `js/algebra-engine.js`,
+loaded alongside `js/puzzle-engine.js` on all three
+screens. The arithmetic engine and its legacy API are
+untouched (they are the regression gate). Tiles are
+two-layer: an expression **face** students see over a
+hidden **value** the hunt runs on. Generation is
+template-based only (data → text, never text → data),
+generate-then-verify with the production solver, and
+exactly-one-solution enforcement — where a "solution"
+counts tile **sets**, so the same set read a second true
+way (90 ÷ 10 = 9 and 90 ÷ 9 = 10 on one board) is one
+solution, per design §2/§6. The engine exports
+`createAlgebraPuzzle`, `createAlgebraExample` (all 13
+worked examples from the design doc),
+`verifyAlgebraRound`, `checkAlgebraSelection`,
+`getAlgebraReveal`, `evaluateAlgebraBoardForSettings`
+(the keep-or-redeal decision), plus the settings
+normalizers and label/description/range lookups the
+controllers use.
+
+### Per-file changes
+
+- **`js/algebra-engine.js` (new, ~2,700 lines):** the
+  four skills — Missing Number (single-tile strike,
+  inverse-operation reasoning lines), Evaluate
+  Expressions (pair hunt on evaluated values, strike
+  shows both forms `2x + 3 = 11 → 8 + 3 = 11`, strict
+  click order for subtraction/division), Solve for x
+  (single-tile strike, substitution-check feedback,
+  distractors built from the design's named error
+  patterns), Equivalent Expressions (canonical `a·x + b`
+  reduction, either click order, property + spot-check
+  feedback). Per-band ranges from the design table;
+  band skill filtering (K–2 Missing only; 3–5 adds
+  Evaluate + one-step Solve; 6–8 adds two-step Solve +
+  Equivalent) plus a Mixed skill option.
+- **`js/shared-state.js`:** new settings
+  `content` ("arithmetic" default | "algebra"),
+  `gradeBand`, `algebraSkill`, `solveSteps`, each with
+  normalizers (skill clamps against the band) and
+  in-place setters mirroring the operation pattern
+  (`setContentInPlace`, `setGradeBandInPlace`,
+  `setAlgebraSkillInPlace`, `setSolveStepsInPlace`);
+  a normalized `algebraRound` block on the root state
+  (legacy states without the new fields load as
+  arithmetic with no round); `resetPuzzleState` clears
+  the round; `setGameMode` refuses non-Classic modes
+  while content is algebra.
+- **`demo.html` / `teacher.html`:** Content switch at
+  the top of Mission Setup / Game Settings, Grade Band +
+  Skill + Steps controls, band-range line and
+  plain-language skill description, an algebra banner
+  block, and the algebra-engine script tag.
+- **`smartboard.html`:** banner bar only — **no new
+  controls**, per the design.
+- **`js/demo.js`:** mirrors the algebra settings in its
+  local state; deals/checks/reveals rounds through the
+  engine; seamless switching (content switches always
+  redeal in place; band/skill/steps/operation/negatives
+  changes use the engine's keep-or-redeal; scores,
+  names, active player and timer preserved; no reload,
+  no confirm); Missing Number strikes re-render the
+  banner with the box filled in (design §4).
+- **`js/teacher.js`:** same settings handlers through
+  the shared-state in-place setters (final state saved
+  once, so the Smart Board never sees an intermediate);
+  the teacher's Current Puzzle detail shows tile faces,
+  and Correct Equation shows the round's worked strike
+  line; Reveal Answer reveals the algebra solution and
+  its reasoning, never scores.
+- **`js/smartboard.js`:** renders the banner (on a
+  Missing Number strike/reveal, with the box filled in)
+  and expression tiles; checks selections through the
+  engine; never deals rounds.
+- **CSS (`styles.css`, `demo.css`, `smartboard.css`):**
+  content-switch and banner styling; length-tiered
+  expression-face font scaling (`face-tier-0..4`) with a
+  legibility floor, per design §10.
+- **`tests/test-algebra.js` (new):** Section I below.
+
+### Design choices where the spec left room
+
+- **Flow modes:** the design leaves algebra × Max Out /
+  Practice undefined, so Algebra Mode is scoped to
+  **Classic Hunt only** — the mode options are disabled
+  in the UI while Algebra is on, the panel shows
+  "Algebra Mode uses Classic Hunt in this build.", and
+  the state layer refuses non-Classic modes in algebra
+  as a backstop. No new gameplay was invented.
+- **Operation dropdown in algebra** stays visible for
+  Evaluate Expressions and for Mixed (which can deal
+  Evaluate rounds); hidden for the other skills.
+  Min/Max inputs are hidden in algebra (bands own the
+  ranges; the panel shows the band range as text), and
+  the Terms control is hidden (selection size comes
+  from the skill).
+- **Data hooks (§12)** are future design notes and were
+  **not** built; the round record keeps the stable
+  fields (content, skill, gradeBand, templateId,
+  operation, allowNegatives, gridSize, banner payload,
+  solution, per-tile errorPatternId) that a later
+  DoneMORE Ed data layer will need. No student PII
+  anywhere.
+- Two engine fixes landed during verification:
+  (a) Evaluate value-equations now use the proper minus
+  sign − throughout (the arithmetic engine's combo
+  equations use an ASCII hyphen); (b) single-answer
+  board composition (`pickBoardCandidates`) deals the
+  solution plus the **named error-pattern distractors
+  first**, slips/near values filling bigger boards —
+  the earlier shuffle-and-slice could deal an all-slip
+  board (only 12/300 sampled two-step boards carried a
+  non-slip named trap; now 300/300) and could even slice
+  the solution itself off the board.
+
+### Test results (fourth pass)
+
+- `tests/test-algebra.js` — **18,959 checks, 0
+  failures**: all 13 design-doc worked examples as unit
+  checks (banner, faces, solution, strike lines
+  including substitution checks and property lines,
+  trap-naming misses); generation sweeps per skill ×
+  band × grid (2×2–5×5) × negatives (1,056 rounds
+  verified solvable with exactly one solution, plus
+  exhaustive distractor-miss checks on small boards);
+  Evaluate across all four operations with click-order
+  assertions; band symbol rules (shapes in K–2);
+  one-step-only in 3–5; the Steps knob honoured and
+  band-clamped; named-trap presence on ≥90% of two-step
+  boards (observed 200/200); shared-state round-trips
+  for the new settings and the round block; legacy
+  states loading as arithmetic; source-level wiring
+  (Smart Board has the banner and no new controls).
+- Regression — `tests/test-multi-op.js`: **921,316
+  checks, 0 failures**; `tests/test-teacher-smartboard.js`:
+  **47/47**; `tests/test-port-fixes.js`: **78/78**.
+  `node --check` passes on every JS file. Arithmetic
+  mode behaviour is unchanged.
+
+### Live verification (headless Chrome CDP, 2026-10-20)
+
+Fresh browser profile per run, file:// pages, human
+pacing (≥1 s between synced actions):
+
+- **Demo, Missing Number (K–2):** banner `★ + 9 = 16`,
+  board 7, 4, 15, 5 → strike on 7; equation
+  `7 + 9 = 16 — 7 — because 16 − 9 = 7.`; banner
+  re-rendered with the box filled.
+  (`screenshots/algebra-missing-number.png`)
+- **Demo, Evaluate (3–5):** banner `x = 8`, faces
+  20, 35, 19, `x + 7` → strike `20 + (x + 7) = 35 →
+  20 + 15 = 35` (both forms; expression operand
+  parenthesized). (`screenshots/algebra-evaluate.png`)
+- **Demo, Solve (6–8, Steps = Two-step):** banner
+  `5n + 18 = 48`; deliberate miss on the
+  stopped-halfway tile 30 → *"That's 5n, not n — one
+  more step."*; then strike on 6 → `5(6) + 18 = 48 ✓`.
+  (`screenshots/algebra-solve.png`)
+- **Demo, Equivalent Expressions (6–8):** faces
+  `7x + 12 + 2x`, `9x + 14`, `9x + 12`, `21x` → pair
+  strike; feedback *"Combining Like Terms: 7x + 2x
+  makes 9x; the constant stays 12. Check with x = 4:
+  7x + 12 + 2x = 48 and 9x + 12 = 48 ✓."*
+  (`screenshots/algebra-equivalent.png`)
+- **Demo, mid-session switch:** with scores at [2, 2],
+  Algebra → Arithmetic → Algebra redealt in place both
+  ways (arithmetic board 10, 17, 7, 15, then a fresh
+  Equivalent board), scores kept, and a page marker
+  survived — no reload anywhere.
+- **Teacher + Smart Board (one browser):** teacher set
+  Algebra / Solve / 6–8 and dealt `7x + 8 = 260` with
+  candidates 37, 8, 36, 7; the board showed the same
+  banner and faces; the student struck 36 on the board
+  → `7(36) + 8 = 260 ✓`; the teacher screen synced back
+  to 1 correct / 1 attempt, status COMPLETE.
+  (`screenshots/algebra-smartboard-solve.png`)
+
+### Known limits (fourth pass)
+
+- Algebra × flow modes remain undefined by design;
+  Classic Hunt only (see above).
+- The pre-existing teacher↔board sync echo race
+  (third-pass note) is unchanged; it did not reproduce
+  at human pacing in any check above.
+- On a strike, the Smart Board's struck tile highlight
+  clears when the round flips to COMPLETE (~900 ms);
+  the equation bar keeps the worked strike line.
+- Mixed-skill rounds keep the Operation dropdown
+  visible because a Mixed round may be an Evaluate
+  round; on non-Evaluate rounds dealt under Mixed, the
+  dropdown simply has no effect until an Evaluate
+  round is dealt.

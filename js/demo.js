@@ -15,6 +15,15 @@ if (!puzzleEngine) {
     );
 }
 
+const algebraEngine =
+    window.OperationHuntAlgebraEngine;
+
+if (!algebraEngine) {
+    throw new Error(
+        "OperationHuntAlgebraEngine did not load."
+    );
+}
+
 /*
 ====================================================
 CONSTANTS
@@ -57,6 +66,8 @@ const state = {
     validCombinations: [],
     completedTriples: [],
 
+    algebraRound: null,
+
     equation: "",
     status: "WAITING",
 
@@ -76,7 +87,11 @@ const state = {
         maximumNumber: 20,
         operation: "addition",
         allowNegatives: false,
-        showRunningSum: false
+        showRunningSum: false,
+        content: "arithmetic",
+        gradeBand: "k-2",
+        algebraSkill: "missing-number",
+        solveSteps: "mixed"
     },
 
     timer: {
@@ -117,6 +132,96 @@ const elements = {
     gameModeDescription:
         document.querySelector(
             "#game-mode-description"
+        ),
+
+    contentArithmeticButton:
+        document.querySelector(
+            "#content-arithmetic-button"
+        ),
+
+    contentAlgebraButton:
+        document.querySelector(
+            "#content-algebra-button"
+        ),
+
+    algebraSettings:
+        document.querySelector(
+            "#algebra-settings"
+        ),
+
+    gradeBand:
+        document.querySelector(
+            "#grade-band"
+        ),
+
+    algebraSkill:
+        document.querySelector(
+            "#algebra-skill"
+        ),
+
+    solveStepsField:
+        document.querySelector(
+            "#solve-steps-field"
+        ),
+
+    solveSteps:
+        document.querySelector(
+            "#solve-steps"
+        ),
+
+    bandRangeText:
+        document.querySelector(
+            "#band-range-text"
+        ),
+
+    algebraSkillDescription:
+        document.querySelector(
+            "#algebra-skill-description"
+        ),
+
+    algebraFlowNote:
+        document.querySelector(
+            "#algebra-flow-note"
+        ),
+
+    algebraBanner:
+        document.querySelector(
+            "#algebra-banner"
+        ),
+
+    algebraBannerKicker:
+        document.querySelector(
+            "#algebra-banner-kicker"
+        ),
+
+    algebraBannerText:
+        document.querySelector(
+            "#algebra-banner-text"
+        ),
+
+    algebraBannerDetail:
+        document.querySelector(
+            "#algebra-banner-detail"
+        ),
+
+    operationLabel:
+        document.querySelector(
+            'label[for="operation"]'
+        ),
+
+    minimumNumberLabel:
+        document.querySelector(
+            ".setting-minimum-number"
+        ),
+
+    maximumNumberLabel:
+        document.querySelector(
+            ".setting-maximum-number"
+        ),
+
+    requiredAddendsLabel:
+        document.querySelector(
+            ".setting-required-addends"
         ),
 
     footerModeLabel:
@@ -384,6 +489,7 @@ function resetPuzzleState() {
     state.validTriples = [];
     state.validCombinations = [];
     state.completedTriples = [];
+    state.algebraRound = null;
 
     state.equation = "";
     state.status = "WAITING";
@@ -414,6 +520,48 @@ function advancePlayer(direction = 1) {
             direction +
             count
         ) % count;
+}
+
+/*
+====================================================
+ALGEBRA HELPERS
+====================================================
+*/
+
+/*
+Algebra Mode (fourth pass): the Demo keeps its own
+local state, mirroring the shared-state algebra fields.
+The round itself is produced and checked by
+js/algebra-engine.js; state.puzzle mirrors the round's
+hidden values so the existing board/status machinery
+keeps working, while the tiles render their faces.
+*/
+function isAlgebraMode() {
+    return state.settings.content === "algebra";
+}
+
+function getAlgebraSettings() {
+    return algebraEngine.normalizeAlgebraSettings({
+        content: state.settings.content,
+        skill: state.settings.algebraSkill,
+        gradeBand: state.settings.gradeBand,
+        operation: getOperation(),
+        allowNegatives: state.settings.allowNegatives,
+        gridSize: state.settings.gridSize,
+        solveSteps: state.settings.solveSteps
+    });
+}
+
+function getRequiredSelections() {
+    if (isAlgebraMode() && state.algebraRound) {
+        return algebraEngine.getSelectionCount(state.algebraRound);
+    }
+
+    return state.settings.requiredAddends;
+}
+
+function getAlgebraTile(index) {
+    return state.algebraRound?.tiles?.[index] || null;
 }
 
 /*
@@ -610,6 +758,50 @@ function applySettingsChangeToBoard() {
 
     clearFeedbackTimeout();
 
+    if (isAlgebraMode()) {
+        if (state.status === "TIME_UP") {
+            resetPuzzleState();
+            resetTimerToDuration();
+            return;
+        }
+
+        // Keep-or-redeal, algebra edition: the same round
+        // stays only when it is still a legal, exactly-one-
+        // solution round under the new settings; otherwise
+        // a fresh algebra puzzle is dealt in place.
+        const evaluation =
+            algebraEngine.evaluateAlgebraBoardForSettings(
+                state.algebraRound,
+                getAlgebraSettings()
+            );
+
+        if (evaluation.playable) {
+            state.algebraRound = evaluation.round;
+            clearSelection();
+            state.struckIndexes = [];
+            state.completedTriples = [];
+            state.equation = "";
+            state.status = "OPEN";
+            return;
+        }
+
+        const previousFaces =
+            state.algebraRound
+                ? state.algebraRound.tiles.map(tile => tile.face).join(",")
+                : "";
+
+        generatePuzzle({ preserveTimer: true });
+
+        if (
+            state.algebraRound &&
+            state.algebraRound.tiles.map(tile => tile.face).join(",") !== previousFaces
+        ) {
+            flagBoardSwap();
+        }
+
+        return;
+    }
+
     if (state.status === "TIME_UP") {
         // The round already ended, so there is no live
         // board to preserve; clear back to WAITING the
@@ -668,6 +860,122 @@ function flagBoardSwap() {
                 "board-swap"
             );
         }, 400);
+}
+
+function updateContent(content) {
+    const nextContent =
+        algebraEngine.normalizeContent(content);
+
+    if (nextContent === state.settings.content) {
+        render();
+        return;
+    }
+
+    state.settings.content = nextContent;
+
+    if (isAlgebraMode()) {
+        // Algebra Mode is scoped to Classic Hunt in this
+        // build (the design spec leaves the flow-mode
+        // interactions undefined).
+        state.gameMode = GAME_MODES.CLASSIC;
+    }
+
+    clearFeedbackTimeout();
+
+    if (!puzzleExists()) {
+        render();
+        return;
+    }
+
+    if (state.status === "TIME_UP") {
+        resetPuzzleState();
+        resetTimerToDuration();
+        render();
+        return;
+    }
+
+    // Content switches always redeal in place: arithmetic
+    // tiles and algebra tiles are different objects.
+    const previousPuzzle = state.puzzle.join(",");
+
+    generatePuzzle({ preserveTimer: true });
+
+    if (puzzleExists() && state.puzzle.join(",") !== previousPuzzle) {
+        flagBoardSwap();
+    }
+
+    render();
+}
+
+function updateGradeBand() {
+    if (!elements.gradeBand) {
+        return;
+    }
+
+    const nextBand =
+        algebraEngine.normalizeGradeBand(elements.gradeBand.value);
+
+    if (nextBand === state.settings.gradeBand) {
+        return;
+    }
+
+    state.settings.gradeBand = nextBand;
+    state.settings.algebraSkill =
+        algebraEngine.normalizeAlgebraSkill(
+            state.settings.algebraSkill,
+            nextBand
+        );
+
+    if (isAlgebraMode()) {
+        applySettingsChangeToBoard();
+    }
+
+    render();
+}
+
+function updateAlgebraSkill() {
+    if (!elements.algebraSkill) {
+        return;
+    }
+
+    const nextSkill =
+        algebraEngine.normalizeAlgebraSkill(
+            elements.algebraSkill.value,
+            state.settings.gradeBand
+        );
+
+    if (nextSkill === state.settings.algebraSkill) {
+        return;
+    }
+
+    state.settings.algebraSkill = nextSkill;
+
+    if (isAlgebraMode()) {
+        applySettingsChangeToBoard();
+    }
+
+    render();
+}
+
+function updateSolveSteps() {
+    if (!elements.solveSteps) {
+        return;
+    }
+
+    const nextSteps =
+        algebraEngine.normalizeSolveSteps(elements.solveSteps.value);
+
+    if (nextSteps === state.settings.solveSteps) {
+        return;
+    }
+
+    state.settings.solveSteps = nextSteps;
+
+    if (isAlgebraMode()) {
+        applySettingsChangeToBoard();
+    }
+
+    render();
 }
 
 function updateOperation() {
@@ -754,6 +1062,14 @@ function updateGameMode() {
     const selectedMode =
         elements.gameMode.value;
 
+    if (isAlgebraMode() && selectedMode !== GAME_MODES.CLASSIC) {
+        // Flow modes are not defined for Algebra Mode in
+        // this build; the option is disabled in the UI and
+        // any change is refused here as a backstop.
+        elements.gameMode.value = state.gameMode;
+        return;
+    }
+
     if (
         selectedMode ===
         state.gameMode
@@ -807,11 +1123,15 @@ function renderGameMode() {
 
     elements.gameInstructions
         .textContent =
-        practice
-            ? `Practice finding ${state.settings.requiredAddends} numbers that ${getOperationVerbPhrase()} a target. Keep going until the session is reset.`
-            : maxOut
-                ? `Find ${state.settings.requiredAddends} numbers that ${getOperationVerbPhrase()} a target. Solve as many as possible before time expires.`
-                : `Find ${state.settings.requiredAddends} numbers that ${getOperationVerbPhrase()} another number on the radar and strike the target.`;
+        isAlgebraMode()
+            ? algebraEngine.getSkillDescription(
+                state.algebraRound?.skill || state.settings.algebraSkill
+            )
+            : practice
+                ? `Practice finding ${state.settings.requiredAddends} numbers that ${getOperationVerbPhrase()} a target. Keep going until the session is reset.`
+                : maxOut
+                    ? `Find ${state.settings.requiredAddends} numbers that ${getOperationVerbPhrase()} a target. Solve as many as possible before time expires.`
+                    : `Find ${state.settings.requiredAddends} numbers that ${getOperationVerbPhrase()} another number on the radar and strike the target.`;
 
     if (elements.footerModeLabel) {
         elements.footerModeLabel
@@ -822,7 +1142,9 @@ function renderGameMode() {
                     : maxOut
                         ? "Max Out Training Active"
                         : "Classic Hunt Training Active"
-            ) + ` · ${getOperationLabel()}`;
+            ) + (isAlgebraMode()
+                ? ` · Algebra: ${algebraEngine.getSkillLabel(state.algebraRound?.skill || state.settings.algebraSkill)}`
+                : ` · ${getOperationLabel()}`);
     }
 
     document.body.classList.toggle(
@@ -847,11 +1169,13 @@ function renderGameMode() {
     }
 
     document.title =
-        practice
-            ? "Operation Hunt: Practice — Demo"
-            : maxOut
-                ? "Operation Hunt: Max Out — Demo"
-                : "Operation Hunt: Classic Hunt — Demo";
+        isAlgebraMode()
+            ? "Operation Hunt: Algebra — Demo"
+            : practice
+                ? "Operation Hunt: Practice — Demo"
+                : maxOut
+                    ? "Operation Hunt: Max Out — Demo"
+                    : "Operation Hunt: Classic Hunt — Demo";
 }
 
 /*
@@ -1126,6 +1450,52 @@ function generatePuzzle(options = {}) {
         stopTimer();
     }
 
+    if (isAlgebraMode()) {
+        try {
+            const round =
+                algebraEngine.createAlgebraPuzzle(
+                    getAlgebraSettings()
+                );
+
+            state.algebraRound = round;
+            state.puzzle =
+                round.tiles.map(tile => tile.value);
+            state.gridSize = round.gridSize;
+            state.boardSize = round.boardSize;
+            state.settings.gridSize = round.gridSize;
+
+            state.selectedIndexes = [];
+            state.struckIndexes = [];
+            state.matchedTargetIndex = null;
+            state.completedTriples = [];
+            state.validTriples = [];
+            state.validCombinations = [];
+
+            state.equation = "";
+            state.status = "OPEN";
+            state.totalPuzzles += 1;
+
+            if (!preserveTimer) {
+                if (state.timer.enabled) {
+                    startTimer();
+                } else {
+                    resetTimerToDuration();
+                }
+            }
+
+            render();
+        } catch (error) {
+            console.error(
+                "Algebra puzzle generation failed:",
+                error
+            );
+
+            window.alert(error.message);
+        }
+
+        return;
+    }
+
     try {
         const generated =
             puzzleEngine
@@ -1276,7 +1646,7 @@ function handlePuzzleClick(event) {
 
     if (
         state.selectedIndexes.length >=
-        state.settings.requiredAddends
+        getRequiredSelections()
     ) {
         return;
     }
@@ -1285,7 +1655,7 @@ function handlePuzzleClick(event) {
 
     if (
         state.selectedIndexes.length ===
-        state.settings.requiredAddends
+        getRequiredSelections()
     ) {
         checkAnswer();
     }
@@ -1300,6 +1670,11 @@ function checkAnswer() {
     player.attempts += 1;
     state.totalAttempts += 1;
 
+    if (isAlgebraMode() && state.algebraRound) {
+        checkAlgebraAnswer(player);
+        return;
+    }
+
     cacheAttemptEquation();
 
     if (isFlowMode()) {
@@ -1307,6 +1682,62 @@ function checkAnswer() {
     } else {
         checkClassicAnswer(player);
     }
+}
+
+/*
+====================================================
+ALGEBRA ROUND FLOW
+====================================================
+*/
+
+function checkAlgebraAnswer(player) {
+    const result =
+        algebraEngine.checkAlgebraSelection(
+            state.algebraRound,
+            state.selectedIndexes
+        );
+
+    if (!result.correct) {
+        // The miss line names the trap where the round
+        // defines one (Solve for x distractors, near-miss
+        // expressions), and always shows the attempt.
+        state.equation =
+            result.display ||
+            "MISS — TRY AGAIN";
+
+        handleMiss(player);
+        return;
+    }
+
+    awardCorrect(player);
+
+    state.matchedTargetIndex =
+        result.resultIndex !== null &&
+        result.resultIndex !== undefined
+            ? result.resultIndex
+            : null;
+
+    state.completedTriples = [];
+
+    state.equation =
+        result.display || "TARGET STRIKE";
+
+    state.status = "SOLVED";
+
+    stopTimer();
+    render();
+
+    clearFeedbackTimeout();
+
+    feedbackTimeoutId =
+        window.setTimeout(() => {
+            feedbackTimeoutId = null;
+
+            state.status =
+                "COMPLETE";
+
+            render();
+        }, STRIKE_FEEDBACK_DELAY);
 }
 
 /*
@@ -1474,6 +1905,34 @@ function revealAnswer() {
             "Generate a puzzle first."
         );
 
+        return;
+    }
+
+    if (isAlgebraMode() && state.algebraRound) {
+        const reveal =
+            algebraEngine.getAlgebraReveal(
+                state.algebraRound
+            );
+
+        stopTimer();
+
+        state.selectedIndexes = [
+            ...reveal.selectedIndexes
+        ];
+
+        state.matchedTargetIndex =
+            reveal.resultIndex !== null &&
+            reveal.resultIndex !== undefined
+                ? reveal.resultIndex
+                : null;
+
+        state.equation =
+            reveal.display;
+
+        state.status =
+            "REVEALED";
+
+        render();
         return;
     }
 
@@ -1885,7 +2344,7 @@ function renderStatus() {
 
         OPEN:
             state.selectedIndexes.length > 0
-                ? `TARGET LOCKED ${state.selectedIndexes.length}/${state.settings.requiredAddends}`
+                ? `TARGET LOCKED ${state.selectedIndexes.length}/${getRequiredSelections()}`
                 : "ROUND OPEN",
 
         SOLVED:
@@ -2106,6 +2565,11 @@ function renderPuzzle() {
             const value =
                 state.puzzle[index];
 
+            const algebraTile =
+                isAlgebraMode()
+                    ? getAlgebraTile(index)
+                    : null;
+
             const selected =
                 state.selectedIndexes
                     .includes(index);
@@ -2120,14 +2584,42 @@ function renderPuzzle() {
                     .includes(index);
 
             cell.textContent =
-                value === undefined
-                    ? ""
-                    : String(value);
+                algebraTile
+                    ? algebraTile.face
+                    : value === undefined
+                        ? ""
+                        : String(value);
+
+            if (algebraTile) {
+                cell.classList.add(
+                    "algebra-tile",
+                    `face-tier-${algebraTile.faceTier ?? algebraEngine.getFaceTier(algebraTile.face)}`
+                );
+
+                cell.setAttribute(
+                    "aria-label",
+                    `Puzzle tile ${algebraTile.face}`
+                );
+
+                // Equivalent Expressions has no separate
+                // result tile: the struck pair itself turns
+                // green on a strike or reveal.
+                if (
+                    selected &&
+                    state.algebraRound?.skill === "equivalent" &&
+                    ["SOLVED", "COMPLETE", "REVEALED"].includes(state.status)
+                ) {
+                    cell.classList.add(
+                        "correct",
+                        "target-matched"
+                    );
+                }
+            }
 
             cell.disabled =
                 !isBoardInteractive() ||
                 struck ||
-                value === undefined;
+                (algebraTile ? false : value === undefined);
 
             if (selected) {
                 cell.classList.add(
@@ -2155,6 +2647,43 @@ function renderPuzzle() {
 }
 
 function renderEquation() {
+    if (isAlgebraMode() && state.algebraRound) {
+        const round = state.algebraRound;
+
+        if (
+            ["SOLVED", "COMPLETE", "REVEALED"].includes(state.status)
+        ) {
+            elements.equationDisplay.textContent =
+                state.equation || "TARGET STRIKE";
+            return;
+        }
+
+        if (state.status === "TRY_AGAIN") {
+            elements.equationDisplay.textContent =
+                state.equation || "MISS — TRY AGAIN";
+            return;
+        }
+
+        if (state.selectedIndexes.length > 0) {
+            const faces =
+                state.selectedIndexes.map(
+                    index => round.tiles[index]?.face ?? "?"
+                );
+
+            elements.equationDisplay.textContent =
+                round.skill === "equivalent"
+                    ? faces.join("  ≟  ")
+                    : round.skill === "evaluate"
+                        ? `${faces.join(` ${getOperationSymbol()} `)} = ?`
+                        : faces.join(" ");
+            return;
+        }
+
+        elements.equationDisplay.textContent =
+            algebraEngine.getSkillDescription(round.skill);
+        return;
+    }
+
     const runningSumEnabled =
         state.settings.showRunningSum;
 
@@ -2309,6 +2838,161 @@ function renderSummary() {
             ).toFixed(2) + "%";
 }
 
+function renderAlgebraBanner() {
+    if (!elements.algebraBanner) {
+        return;
+    }
+
+    const round = isAlgebraMode() ? state.algebraRound : null;
+
+    elements.algebraBanner.hidden = !round;
+
+    if (!round) {
+        return;
+    }
+
+    elements.algebraBannerKicker.textContent =
+        `${algebraEngine.getSkillLabel(round.skill)} · ${algebraEngine.GRADE_BANDS[round.gradeBand] || round.gradeBand}`;
+
+    elements.algebraBannerText.textContent =
+        round.skill === "missing-number" &&
+        ["SOLVED", "COMPLETE", "REVEALED"].includes(state.status) &&
+        round.solution?.faceEquation
+            ? round.solution.faceEquation
+            : round.banner.text;
+
+    elements.algebraBannerDetail.textContent =
+        round.banner.detail || "";
+}
+
+function renderAlgebraSettings() {
+    const algebra = isAlgebraMode();
+
+    if (elements.contentArithmeticButton) {
+        elements.contentArithmeticButton.classList.toggle(
+            "active",
+            !algebra
+        );
+        elements.contentArithmeticButton.setAttribute(
+            "aria-pressed",
+            String(!algebra)
+        );
+    }
+
+    if (elements.contentAlgebraButton) {
+        elements.contentAlgebraButton.classList.toggle(
+            "active",
+            algebra
+        );
+        elements.contentAlgebraButton.setAttribute(
+            "aria-pressed",
+            String(algebra)
+        );
+    }
+
+    if (elements.algebraSettings) {
+        elements.algebraSettings.hidden = !algebra;
+    }
+
+    if (elements.algebraFlowNote) {
+        elements.algebraFlowNote.hidden = !algebra;
+    }
+
+    // Flow modes are disabled while Algebra Mode is on.
+    elements.gameMode
+        .querySelectorAll("option")
+        .forEach(option => {
+            option.disabled =
+                algebra && option.value !== GAME_MODES.CLASSIC;
+        });
+
+    if (!algebra) {
+        return;
+    }
+
+    if (elements.gradeBand) {
+        elements.gradeBand.value =
+            state.settings.gradeBand;
+    }
+
+    if (elements.algebraSkill) {
+        const options = [
+            ...algebraEngine.getSkillsForBand(state.settings.gradeBand)
+                .map(skill => ({
+                    value: skill,
+                    label: algebraEngine.getSkillLabel(skill)
+                })),
+            { value: "mixed", label: "Mixed" }
+        ];
+
+        elements.algebraSkill.replaceChildren();
+
+        options.forEach(optionData => {
+            const option = document.createElement("option");
+            option.value = optionData.value;
+            option.textContent = optionData.label;
+            elements.algebraSkill.append(option);
+        });
+
+        elements.algebraSkill.value =
+            state.settings.algebraSkill;
+    }
+
+    const showSteps =
+        state.settings.gradeBand === "6-8" &&
+        (state.settings.algebraSkill === "solve" ||
+            state.settings.algebraSkill === "mixed");
+
+    if (elements.solveStepsField) {
+        elements.solveStepsField.hidden = !showSteps;
+    }
+
+    if (elements.solveSteps) {
+        elements.solveSteps.value =
+            state.settings.solveSteps;
+    }
+
+    if (elements.bandRangeText) {
+        elements.bandRangeText.textContent =
+            algebraEngine.getBandRangeText(state.settings.gradeBand);
+    }
+
+    if (elements.algebraSkillDescription) {
+        elements.algebraSkillDescription.textContent =
+            algebraEngine.getSkillDescription(state.settings.algebraSkill);
+    }
+
+    // The Operation dropdown stays visible only where it
+    // drives the round: Evaluate Expressions (and Mixed,
+    // which can deal Evaluate rounds).
+    const showOperation =
+        state.settings.algebraSkill === "evaluate" ||
+        state.settings.algebraSkill === "mixed";
+
+    if (elements.operationLabel) {
+        elements.operationLabel.hidden = !showOperation;
+    }
+
+    if (elements.operation) {
+        elements.operation.hidden = !showOperation;
+    }
+
+    // Bands own the number ranges in Algebra Mode, and the
+    // Terms control has no algebra meaning (selection size
+    // comes from the skill), so both are hidden.
+    if (elements.minimumNumberLabel) {
+        elements.minimumNumberLabel.hidden = true;
+    }
+
+    if (elements.maximumNumberLabel) {
+        elements.maximumNumberLabel.hidden = true;
+    }
+
+    if (elements.requiredAddendsLabel) {
+        elements.requiredAddendsLabel.hidden = true;
+    }
+}
+
 function renderSettings() {
     if (elements.operation) {
         elements.operation.value =
@@ -2360,6 +3044,31 @@ function renderSettings() {
         elements.runningSumToggle.checked =
             state.settings.showRunningSum;
     }
+
+    if (!isAlgebraMode()) {
+        if (elements.operationLabel) {
+            elements.operationLabel.hidden = false;
+        }
+
+        if (elements.operation) {
+            elements.operation.hidden = false;
+        }
+
+        if (elements.minimumNumberLabel) {
+            elements.minimumNumberLabel.hidden = false;
+        }
+
+        if (elements.maximumNumberLabel) {
+            elements.maximumNumberLabel.hidden = false;
+        }
+
+        if (elements.requiredAddendsLabel) {
+            elements.requiredAddendsLabel.hidden = false;
+        }
+    }
+
+    renderAlgebraSettings();
+    renderAlgebraBanner();
 
     elements.timerToggle.checked =
         state.timer.enabled;
@@ -2477,6 +3186,41 @@ function connectEvents() {
         elements.allowNegativesToggle.addEventListener(
             "change",
             updateAllowNegatives
+        );
+    }
+
+    if (elements.contentArithmeticButton) {
+        elements.contentArithmeticButton.addEventListener(
+            "click",
+            () => updateContent("arithmetic")
+        );
+    }
+
+    if (elements.contentAlgebraButton) {
+        elements.contentAlgebraButton.addEventListener(
+            "click",
+            () => updateContent("algebra")
+        );
+    }
+
+    if (elements.gradeBand) {
+        elements.gradeBand.addEventListener(
+            "change",
+            updateGradeBand
+        );
+    }
+
+    if (elements.algebraSkill) {
+        elements.algebraSkill.addEventListener(
+            "change",
+            updateAlgebraSkill
+        );
+    }
+
+    if (elements.solveSteps) {
+        elements.solveSteps.addEventListener(
+            "change",
+            updateSolveSteps
         );
     }
 

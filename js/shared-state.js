@@ -23,6 +23,58 @@ const DEFAULT_OPERATION = "addition";
 const MINIMUM_FLOOR_WITH_NEGATIVES = -20;
 const MINIMUM_FLOOR_WITHOUT_NEGATIVES = 1;
 
+const CONTENT_IDS = Object.freeze(["arithmetic", "algebra"]);
+const GRADE_BAND_IDS = Object.freeze(["k-2", "3-5", "6-8"]);
+const ALGEBRA_SKILL_IDS = Object.freeze([
+    "missing-number",
+    "evaluate",
+    "solve",
+    "equivalent",
+    "mixed"
+]);
+const ACTUAL_ALGEBRA_SKILL_IDS = Object.freeze([
+    "missing-number",
+    "evaluate",
+    "solve",
+    "equivalent"
+]);
+const SOLVE_STEP_IDS = Object.freeze(["one-step", "two-step", "mixed"]);
+const ALGEBRA_SKILLS_BY_BAND = Object.freeze({
+    "k-2": Object.freeze(["missing-number"]),
+    "3-5": Object.freeze(["missing-number", "evaluate", "solve"]),
+    "6-8": Object.freeze(["missing-number", "evaluate", "solve", "equivalent"])
+});
+const DEFAULT_CONTENT = "arithmetic";
+const DEFAULT_GRADE_BAND = "k-2";
+const DEFAULT_ALGEBRA_SKILL = "missing-number";
+const DEFAULT_SOLVE_STEPS = "mixed";
+
+function normalizeContent(value) {
+    return CONTENT_IDS.includes(value) ? value : DEFAULT_CONTENT;
+}
+
+function normalizeGradeBand(value) {
+    return GRADE_BAND_IDS.includes(value) ? value : DEFAULT_GRADE_BAND;
+}
+
+function getAlgebraSkillsForBand(gradeBand) {
+    return [...(ALGEBRA_SKILLS_BY_BAND[normalizeGradeBand(gradeBand)] || [])];
+}
+
+function normalizeAlgebraSkill(value, gradeBand = DEFAULT_GRADE_BAND) {
+    if (value === "mixed") {
+        return "mixed";
+    }
+
+    return getAlgebraSkillsForBand(gradeBand).includes(value)
+        ? value
+        : DEFAULT_ALGEBRA_SKILL;
+}
+
+function normalizeSolveSteps(value) {
+    return SOLVE_STEP_IDS.includes(value) ? value : DEFAULT_SOLVE_STEPS;
+}
+
 function normalizeOperation(value) {
     return OPERATION_IDS.includes(value)
         ? value
@@ -66,6 +118,7 @@ function createDefaultState() {
         validTriples: [],
         validCombinations: [],
         completedTriples: [],
+        algebraRound: null,
 
         correctAddends: [],
         sum: null,
@@ -87,7 +140,11 @@ function createDefaultState() {
             maximumNumber: 20,
             showRunningSum: false,
             operation: DEFAULT_OPERATION,
-            allowNegatives: false
+            allowNegatives: false,
+            content: DEFAULT_CONTENT,
+            gradeBand: DEFAULT_GRADE_BAND,
+            algebraSkill: DEFAULT_ALGEBRA_SKILL,
+            solveSteps: DEFAULT_SOLVE_STEPS
         },
 
         timer: {
@@ -273,6 +330,157 @@ function normalizeRequiredAddends(value, gridSize) {
         : allowed[allowed.length - 1];
 }
 
+function sanitizeAlgebraValue(value, depth = 0) {
+    if (value === null || typeof value === "string" || typeof value === "boolean") {
+        return typeof value === "string" ? value.slice(0, 1000) : value;
+    }
+
+    if (typeof value === "number") {
+        return Number.isFinite(value) ? value : null;
+    }
+
+    if (depth >= 5) {
+        return null;
+    }
+
+    if (Array.isArray(value)) {
+        return value
+            .slice(0, 100)
+            .map(item => sanitizeAlgebraValue(item, depth + 1))
+            .filter(item => item !== undefined);
+    }
+
+    if (value && typeof value === "object") {
+        const sanitized = {};
+
+        Object.entries(value).slice(0, 100).forEach(([key, item]) => {
+            const clean = sanitizeAlgebraValue(item, depth + 1);
+            if (clean !== undefined) {
+                sanitized[String(key).slice(0, 80)] = clean;
+            }
+        });
+
+        return sanitized;
+    }
+
+    return undefined;
+}
+
+function normalizeAlgebraTile(tile, skill) {
+    if (!tile || typeof tile !== "object") {
+        return null;
+    }
+
+    const face = typeof tile.face === "string" ? tile.face.trim() : "";
+    const kind = ["number", "expression", "candidate"].includes(tile.kind)
+        ? tile.kind
+        : null;
+
+    if (!face || face.length > 80 || !kind) {
+        return null;
+    }
+
+    const rawValue = tile.value;
+    const value = rawValue === null || rawValue === undefined
+        ? null
+        : Number(rawValue);
+
+    if (skill !== "equivalent" && !Number.isFinite(value)) {
+        return null;
+    }
+
+    if (value !== null && !Number.isFinite(value)) {
+        return null;
+    }
+
+    const canonical = tile.canonical &&
+        Number.isFinite(Number(tile.canonical.a)) &&
+        Number.isFinite(Number(tile.canonical.b))
+        ? {
+            a: Number(tile.canonical.a),
+            b: Number(tile.canonical.b)
+        }
+        : null;
+
+    return {
+        face,
+        value,
+        kind,
+        canonical,
+        templateId: typeof tile.templateId === "string" ? tile.templateId.slice(0, 100) : null,
+        errorPatternId: typeof tile.errorPatternId === "string" ? tile.errorPatternId.slice(0, 100) : null,
+        missFeedback: typeof tile.missFeedback === "string" ? tile.missFeedback.slice(0, 1000) : null,
+        faceTier: Number.isInteger(tile.faceTier) && tile.faceTier >= 0 && tile.faceTier <= 4
+            ? tile.faceTier
+            : Math.min(4, Math.max(0, Math.floor(face.length / 4)))
+    };
+}
+
+function normalizeAlgebraRound(round, gradeBand = DEFAULT_GRADE_BAND) {
+    if (!round || typeof round !== "object" || round.content !== "algebra") {
+        return null;
+    }
+
+    const band = normalizeGradeBand(round.gradeBand ?? gradeBand);
+    const skill = round.skill;
+
+    if (!ACTUAL_ALGEBRA_SKILL_IDS.includes(skill) || !getAlgebraSkillsForBand(band).includes(skill)) {
+        return null;
+    }
+
+    const gridSize = normalizeGridSize(round.gridSize);
+    const boardSize = gridSize * gridSize;
+
+    if (!Array.isArray(round.tiles) || round.tiles.length !== boardSize) {
+        return null;
+    }
+
+    const tiles = round.tiles.map(tile => normalizeAlgebraTile(tile, skill));
+
+    if (tiles.some(tile => !tile) || new Set(tiles.map(tile => tile.face)).size !== tiles.length) {
+        return null;
+    }
+
+    const solution = sanitizeAlgebraValue(round.solution);
+    const solutionIndexes = Array.isArray(solution?.indexes)
+        ? solution.indexes.map(Number).filter(Number.isInteger)
+        : [];
+
+    if (
+        solutionIndexes.length === 0 ||
+        new Set(solutionIndexes).size !== solutionIndexes.length ||
+        solutionIndexes.some(index => index < 0 || index >= boardSize)
+    ) {
+        return null;
+    }
+
+    const banner = sanitizeAlgebraValue(round.banner);
+
+    if (!banner || typeof banner.text !== "string" || !banner.text) {
+        return null;
+    }
+
+    return {
+        content: "algebra",
+        skill,
+        requestedSkill: normalizeAlgebraSkill(round.requestedSkill, band),
+        gradeBand: band,
+        solveSteps: normalizeSolveSteps(round.solveSteps),
+        operation: normalizeOperation(round.operation),
+        allowNegatives: Boolean(round.allowNegatives),
+        gridSize,
+        boardSize,
+        variable: sanitizeAlgebraValue(round.variable),
+        banner,
+        question: sanitizeAlgebraValue(round.question),
+        tiles,
+        solution,
+        feedback: sanitizeAlgebraValue(round.feedback) || {},
+        templateId: typeof round.templateId === "string" ? round.templateId.slice(0, 100) : null,
+        metadata: sanitizeAlgebraValue(round.metadata) || {}
+    };
+}
+
 function normalizeState(savedState = {}) {
     const defaults = createDefaultState();
     const gridSize = normalizeGridSize(savedState.settings?.gridSize ?? savedState.gridSize ?? defaults.gridSize);
@@ -304,9 +512,11 @@ function normalizeState(savedState = {}) {
         ...defaults,
         ...savedState,
 
-        gameMode: Object.values(GAME_MODES).includes(savedState.gameMode)
-            ? savedState.gameMode
-            : GAME_MODES.CLASSIC,
+        gameMode: normalizeContent(savedState.settings?.content) === "algebra"
+            ? GAME_MODES.CLASSIC
+            : Object.values(GAME_MODES).includes(savedState.gameMode)
+                ? savedState.gameMode
+                : GAME_MODES.CLASSIC,
 
         puzzle,
         gridSize,
@@ -335,6 +545,13 @@ function normalizeState(savedState = {}) {
             requiredAddends,
             operation: normalizeOperation(savedState.settings?.operation),
             allowNegatives: Boolean(savedState.settings?.allowNegatives),
+            content: normalizeContent(savedState.settings?.content),
+            gradeBand: normalizeGradeBand(savedState.settings?.gradeBand),
+            algebraSkill: normalizeAlgebraSkill(
+                savedState.settings?.algebraSkill,
+                normalizeGradeBand(savedState.settings?.gradeBand)
+            ),
+            solveSteps: normalizeSolveSteps(savedState.settings?.solveSteps),
             minimumNumber: Math.max(
                 Boolean(savedState.settings?.allowNegatives)
                     ? MINIMUM_FLOOR_WITH_NEGATIVES
@@ -344,6 +561,11 @@ function normalizeState(savedState = {}) {
             maximumNumber: Math.max(2, normalizeInteger(savedState.settings?.maximumNumber, defaults.settings.maximumNumber)),
             showRunningSum: Boolean(savedState.settings?.showRunningSum)
         },
+
+        algebraRound: normalizeAlgebraRound(
+            savedState.algebraRound,
+            normalizeGradeBand(savedState.settings?.gradeBand)
+        ),
 
         timer: {
             ...defaults.timer,
@@ -443,6 +665,7 @@ function resetPuzzleState() {
     sharedState.validTriples = [];
     sharedState.validCombinations = [];
     sharedState.completedTriples = [];
+    sharedState.algebraRound = null;
     sharedState.correctAddends = [];
     sharedState.sum = null;
     sharedState.equation = "";
@@ -465,6 +688,13 @@ function resetMaxOutState() {
 }
 
 function setGameMode(gameMode) {
+    if (
+        sharedState.settings.content === "algebra" &&
+        gameMode !== GAME_MODES.CLASSIC
+    ) {
+        return false;
+    }
+
     if (!Object.values(GAME_MODES).includes(gameMode)) {
         console.error(`Invalid Operation Hunt mode: ${gameMode}`);
         return false;
@@ -540,6 +770,45 @@ function setAllowNegativesInPlace(allowNegatives) {
     return sharedState.settings.allowNegatives;
 }
 
+function setContentInPlace(content) {
+    sharedState.settings.content = normalizeContent(content);
+
+    if (sharedState.settings.content === "algebra") {
+        sharedState.gameMode = GAME_MODES.CLASSIC;
+    }
+
+    saveState({ reason: "content-changed" });
+    return sharedState.settings.content;
+}
+
+function setGradeBandInPlace(gradeBand) {
+    sharedState.settings.gradeBand = normalizeGradeBand(gradeBand);
+    sharedState.settings.algebraSkill = normalizeAlgebraSkill(
+        sharedState.settings.algebraSkill,
+        sharedState.settings.gradeBand
+    );
+
+    saveState({ reason: "grade-band-changed" });
+    return sharedState.settings.gradeBand;
+}
+
+function setAlgebraSkillInPlace(algebraSkill) {
+    sharedState.settings.algebraSkill = normalizeAlgebraSkill(
+        algebraSkill,
+        sharedState.settings.gradeBand
+    );
+
+    saveState({ reason: "algebra-skill-changed" });
+    return sharedState.settings.algebraSkill;
+}
+
+function setSolveStepsInPlace(solveSteps) {
+    sharedState.settings.solveSteps = normalizeSolveSteps(solveSteps);
+
+    saveState({ reason: "solve-steps-changed" });
+    return sharedState.settings.solveSteps;
+}
+
 function getSharedState() {
     return sharedState;
 }
@@ -593,6 +862,21 @@ window.OperationHuntState = Object.freeze({
     ROUND_STATUSES,
     OPERATIONS: OPERATION_IDS,
     DEFAULT_OPERATION,
+    CONTENT_IDS,
+    GRADE_BAND_IDS,
+    ALGEBRA_SKILL_IDS,
+    ACTUAL_ALGEBRA_SKILL_IDS,
+    SOLVE_STEP_IDS,
+    DEFAULT_CONTENT,
+    DEFAULT_GRADE_BAND,
+    DEFAULT_ALGEBRA_SKILL,
+    DEFAULT_SOLVE_STEPS,
+    normalizeContent,
+    normalizeGradeBand,
+    normalizeAlgebraSkill,
+    normalizeSolveSteps,
+    getAlgebraSkillsForBand,
+    normalizeAlgebraRound,
     MINIMUM_FLOOR_WITH_NEGATIVES,
     MINIMUM_FLOOR_WITHOUT_NEGATIVES,
     normalizeOperation,
@@ -605,5 +889,9 @@ window.OperationHuntState = Object.freeze({
     setAllowNegatives,
     setOperationInPlace,
     setAllowNegativesInPlace,
+    setContentInPlace,
+    setGradeBandInPlace,
+    setAlgebraSkillInPlace,
+    setSolveStepsInPlace,
     subscribe: subscribeToState
 });
