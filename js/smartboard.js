@@ -39,6 +39,8 @@ const elements = {
 
 let feedbackTimeoutId = null;
 let timerVisualIntervalId = null;
+let boardSwapTimeoutId = null;
+let lastRenderedPuzzleKey = "";
 
 function saveState(reason) {
     stateApi.saveState({ reason });
@@ -498,8 +500,40 @@ function renderGameMode() {
     document.title = `Operation Hunt: ${labels[state.gameMode]} — Smart Board`;
 }
 
+function flagBoardSwap() {
+    elements.puzzleBoard.classList.add("board-swap");
+
+    if (boardSwapTimeoutId !== null) {
+        window.clearTimeout(boardSwapTimeoutId);
+    }
+
+    boardSwapTimeoutId = window.setTimeout(() => {
+        boardSwapTimeoutId = null;
+        elements.puzzleBoard.classList.remove("board-swap");
+    }, 400);
+}
+
 function renderPuzzle() {
     syncPuzzleCells();
+
+    // A different board landing while a round is open (a
+    // teacher's New Puzzle, a flow-mode next puzzle, or a
+    // seamless settings change that had to re-deal) gets a
+    // brief fade so the new tiles land smoothly. Selection,
+    // strike and miss renders keep the same puzzle key and
+    // never trigger it. Purely visual.
+    const puzzleKey = state.puzzle.join(",");
+
+    if (
+        lastRenderedPuzzleKey &&
+        puzzleKey &&
+        puzzleKey !== lastRenderedPuzzleKey &&
+        state.status === "OPEN"
+    ) {
+        flagBoardSwap();
+    }
+
+    lastRenderedPuzzleKey = puzzleKey;
 
     elements.puzzleBoard.classList.remove("grid-size-2", "grid-size-3", "grid-size-4", "grid-size-5");
     elements.puzzleBoard.classList.add(`grid-size-${state.gridSize || state.settings.gridSize || 2}`);
@@ -572,7 +606,7 @@ function renderScoreboard() {
         return;
     }
 
-    state.players.forEach((player, index) => {
+    state.players.slice(0, state.playerCount).forEach((player, index) => {
         const row = document.createElement("div");
         row.className = "player-row";
         const active = index === state.activePlayerIndex && index < state.playerCount;

@@ -508,6 +508,38 @@ function setAllowNegatives(allowNegatives) {
     return sharedState.settings.allowNegatives;
 }
 
+/*
+Seamless variants of the two setters above: they update the
+setting (and, for negatives, re-clamp the minimum to the new
+floor) and save + broadcast, but they do NOT reset the
+puzzle, timer or Max Out state. The teacher controller uses
+these for mid-session changes and then decides itself —
+via the engine's evaluateBoardForSettings — whether the
+current board stays in play or a fresh puzzle is dealt in
+place, saving again so both screens end on the final state.
+*/
+function setOperationInPlace(operation) {
+    sharedState.settings.operation = normalizeOperation(operation);
+
+    saveState({ reason: "operation-changed" });
+    return sharedState.settings.operation;
+}
+
+function setAllowNegativesInPlace(allowNegatives) {
+    sharedState.settings.allowNegatives = Boolean(allowNegatives);
+
+    const minimumFloor = sharedState.settings.allowNegatives
+        ? MINIMUM_FLOOR_WITH_NEGATIVES
+        : MINIMUM_FLOOR_WITHOUT_NEGATIVES;
+
+    if (sharedState.settings.minimumNumber < minimumFloor) {
+        sharedState.settings.minimumNumber = minimumFloor;
+    }
+
+    saveState({ reason: "allow-negatives-changed" });
+    return sharedState.settings.allowNegatives;
+}
+
 function getSharedState() {
     return sharedState;
 }
@@ -571,5 +603,7 @@ window.OperationHuntState = Object.freeze({
     setGameMode,
     setOperation,
     setAllowNegatives,
+    setOperationInPlace,
+    setAllowNegativesInPlace,
     subscribe: subscribeToState
 });

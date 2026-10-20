@@ -1083,10 +1083,32 @@ MISS FEEDBACK
 }
 
 /*
+Seamless settings change: when a fresh puzzle lands in
+place because the old board could not stay in play, the
+new tiles fade/settle in instead of snapping. Purely
+visual — the swap itself is instant and in place.
+*/
+.smartboard-puzzle-board.board-swap .puzzle-cell {
+    animation: operation-hunt-board-swap 350ms ease;
+}
+
+/*
 ====================================================
 ANIMATIONS
 ====================================================
 */
+
+@keyframes operation-hunt-board-swap {
+    from {
+        opacity: 0.15;
+        transform: scale(0.94);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
 
 @keyframes operation-hunt-strike-board {
     0% {

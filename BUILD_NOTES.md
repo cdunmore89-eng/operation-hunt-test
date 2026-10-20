@@ -322,3 +322,189 @@ New suite `~/workspace/operation-hunt/test-teacher-smartboard.js`:
 - Teacher/smartboard live interaction (two tabs, one browser
   profile) was not browser-tested here — node tests + syntax checks
   only, per the build split; the parent agent verifies live.
+
+## Top-3 fixes port + seamless settings (third pass, 2026-10-20)
+
+The top-3 fixes from the original test report (which lived only in
+the separate `fixed-v1.1/` copy) were ported surgically onto this
+build, hunk by hunk per `~/workspace/operation-hunt/PORT_PLAN_multi-op_fixes.md`
+— no files were copied wholesale, so all multi-op work (operation
+dropdown, negatives toggle, shared-state wiring, strict click
+order) is intact. The same pass adds Clarence's seamless-settings
+request. **Local only — NOT pushed to GitHub in this pass** (the
+pushed `multi-op` branch is still commit
+bd020144ffa51ff0f579943e5410521199d97305; the local files now
+differ from it).
+
+### 1. Real Reset Scores replaces Reset Session (demo + teacher)
+
+- `demo.html` / `teacher.html`: the red button is now **Reset
+  Scores** (`id="reset-scores-button"`).
+- `resetScores()` in `js/demo.js` and `js/teacher.js` follows the
+  fixed-v1.1 spec exactly: confirm ("Reset all player scores to
+  zero? Player names and the current board will be kept."), then
+  zero score/attempts/correct/currentStreak/bestStreak **in place**.
+  Names, the current board, the active player and the Session
+  Intel totals are kept.
+- Teacher side: the zeroing happens on the shared players array
+  and is persisted with `saveState("teacher-reset-scores")`, so it
+  propagates to the Smart Board like any other player mutation
+  (live-verified, below).
+
+### 2. Double turn-advance removed (demo + teacher)
+
+- The `advanceTurn` option and all its call sites are gone from
+  `generatePuzzle()` in `js/demo.js` and `js/teacher.js`. Turns
+  move only via Previous/Next Player and the auto-advance after a
+  miss.
+
+### 3. Inactive player rows hidden (all three screens)
+
+- Demo `renderScoreboard()`, teacher `renderPerformanceTable()`
+  and smartboard `renderScoreboard()` now iterate
+  `players.slice(0, playerCount)` — Agents = 2 renders exactly 2
+  rows. The player records themselves are untouched.
+
+### 4. Seamless Operation / Allow Negatives changes (new)
+
+Changing the Operation dropdown or the Allow Negatives toggle no
+longer asks for confirmation and never wipes the board:
+
+- The decision lives in the engine as
+  `evaluateBoardForSettings(numbers, { operation, allowNegatives,
+  requiredAddends })` (`js/puzzle-engine.js`, exported, unit-tested
+  in Section H): the board is **playable** under the new settings
+  iff (a) every tile is legal (whole numbers; no negative tiles
+  while negatives are off, same −20 floor as generation while on)
+  AND (b) `findCombinations` finds at least one valid combination
+  on those exact tiles for the (possibly new) operation — the
+  engine's strict click-order rules apply.
+- **Playable → keep.** The exact same board stays; only the
+  current selection/feedback is cleared, the solution set
+  (`validCombinations`, `validTriples`, plus teacher's
+  `correctAddends`/`sum`/`remainingTripleCount`) is recomputed,
+  instructions/equation wording follows the new operation, and
+  status returns to OPEN. Scores, names, active player and the
+  timer are untouched.
+- **Not playable → redeal in place.** A fresh puzzle is dealt
+  immediately via `generatePuzzle({ preserveTimer: true })` — no
+  turn advance, timer untouched, and the board passes straight
+  from the old tiles to the new tiles with status OPEN. There is
+  no page reload and no blank WAITING frame anywhere in the
+  change path (there is no `location.reload` / navigation call
+  anywhere in the codebase). As a cosmetic touch, the re-dealt
+  tiles fade/settle in over 350 ms (`board-swap` class +
+  keyframes in `css/demo.css` / `css/smartboard.css`; the
+  smartboard flags it whenever a different board lands while a
+  round is open, the demo only on a settings-change redeal).
+- If the round had already ended (status TIME_UP) there is no
+  live board to preserve, so the change clears back to WAITING,
+  the same as Reset Board. With no puzzle at all, only the
+  setting changes.
+- Shared state: `js/shared-state.js` gained `setOperationInPlace()`
+  / `setAllowNegativesInPlace()` — they update the setting (and
+  re-clamp the minimum to the negatives floor) and save +
+  broadcast **without** resetting puzzle/timer/Max Out state.
+  The older `setOperation` / `setAllowNegatives` keep their
+  reset behaviour and are unchanged. Teacher handlers apply the
+  setting locally, run the board decision, and only then persist
+  through the in-place setter, so the only save a settings change
+  produces carries the final state (an intermediate save carrying
+  the new operation with the old board could be echoed back by
+  the Smart Board's sync and overwrite the final state — see the
+  known limit below).
+- Grid-size / Terms / Min / Max change behaviour is unchanged.
+
+### Tests (third pass)
+
+- New suite `tests/test-port-fixes.js` (**Section H, 78 checks,
+  0 failures**): H1 source-level wiring (no `resetSession` /
+  `advanceTurn` / `reset-session` anywhere in active files,
+  Reset Scores buttons + handlers, all three renderers slice by
+  playerCount, no confirm-and-clear strings for operation /
+  negatives); H2 the keep-vs-redeal decision against the real
+  engine (keep: [4,13,20,9] addition→subtraction via 13 − 4 = 9,
+  [12,3,4,7] division via 12 ÷ 3 = 4, negatives board
+  [−2,8,−8,−6] with negatives on via −8 − −2 = −6, negatives
+  switched ON keeping an all-positive board; redeal:
+  [4,13,20,9]→division/multiplication, [2,3,5,8]→multiplication,
+  negative tiles with negatives switched OFF → `illegal-tiles`,
+  a 0 tile with negatives off, 3-term cases, empty board);
+  H3 shared-state seams (in-place setters do NOT clear a board,
+  minimum clamp works through them, legacy `setOperation` still
+  resets, and an in-place-zeroed players array reaches a freshly
+  loaded second screen with names/board/active player/totals
+  intact and `slice(0, playerCount)` yielding exactly 2 rows).
+- Regression: `tests/test-teacher-smartboard.js` — 47 checks,
+  0 failures (its G6 gate re-runs the engine suite);
+  `tests/test-multi-op.js` — 0 failures (916k–925k checks
+  depending on the run; the count varies because it includes
+  per-combination assertions on randomly generated boards).
+- `node --check` passes on all JS files.
+
+### Live verification (third pass, headless Chrome via CDP, file:// pages, fresh profile per run)
+
+Demo (single page):
+- Dealt 5,7,6,1 and struck 5 + 1 = 6 (Player 1 → 1 point).
+- New board 18,3,15,10; toggled Allow Negatives ON mid-game →
+  same board, ROUND OPEN, score/active player preserved, no
+  dialog.
+- Injected board 12,3,4,7 under Addition, switched Operation to
+  Division → board kept exactly, status ROUND OPEN, solutions
+  recomputed (12 ÷ 3 = 4; 12 ÷ 4 = 3), instructions rewritten to
+  "divide to make", score preserved. (Screenshot:
+  `screenshots/port-seamless-op-change.png`.)
+- Injected 2,3,5,8 under Addition, switched to Multiplication →
+  fresh board 2,7,16,14 dealt instantly (2 × 7 = 14), status
+  OPEN — never WAITING.
+- Negatives board −2,8,−8,−6 under Subtraction, toggled Allow
+  Negatives OFF → fresh all-positive board 8,7,3,4 dealt in
+  place, minimum re-clamped to 1.
+- Reset Scores: scores/attempts zeroed, names/board/totals kept.
+  Next Player → New Puzzle leaves the active player at 1 (no
+  skip). Scoreboard renders 4 rows at Agents = 4 and 2 at
+  Agents = 2. The ONLY dialog in the whole scenario was the
+  Reset Scores confirm — operation/negatives changes raise none.
+
+Teacher + Smart Board (two targets, one browser):
+- Teacher dealt 5,8,3,10 (5 + 3 = 8); board synced; student
+  struck on the board; score/attempts synced back to the
+  teacher; Next Player → New Puzzle kept the active player at
+  Player 2 on both screens.
+- Teacher Reset Scores → Smart Board scoreboard showed both
+  players at 0 with exactly 2 rows, board 10,9,19,11 kept,
+  Player 2 still active, Session totals (Puzzles 2, Attempts 1,
+  Correct 1) preserved. (Screenshot:
+  `screenshots/port-reset-scores-board.png`.)
+- Teacher switched Addition → Division with board 12,3,4,7 in
+  play → board kept the same tiles, showed Division
+  instructions, no swap animation (nothing was re-dealt).
+  (Screenshot: `screenshots/port-seamless-op-change-board.png`.)
+- Teacher switched Addition → Multiplication with board
+  2,3,5,8 in play → new board 5,10,8,2 (5 × 2 = 10) dealt in
+  place on both screens, status OPEN, and the board's
+  `board-swap` fade class was observed live.
+
+### Known limits (third pass)
+
+- **Pre-existing sync echo race (not introduced here):**
+  shared-state sync has no versioning — a receiving screen
+  writes localStorage inside `replaceState()`, and the other
+  screen applies `storage` events unconditionally. Two saves
+  fired microseconds apart (holding Next Player + New Puzzle in
+  one scripted burst, then a third action immediately) can
+  interleave so an earlier state is re-applied and the newest
+  action is lost; this reproduced under scripted CDP pacing
+  (<100 ms between actions) and did NOT reproduce with
+  human-like pacing (≥1 s between actions, all checks above).
+  A revision counter on saves would close it; left as a
+  follow-up decision rather than folded into this port.
+- Changing the operation during the ~900 ms strike-feedback
+  window keeps/redeals the board but leaves the (already
+  stopped) timer stopped for the rest of that round — the
+  timer is deliberately untouched by settings changes.
+- In flow modes (Max Out / Practice), a settings change made
+  in the same feedback window clears the just-struck combo
+  from the kept board's solution set recomputation, so that
+  combo could be struck again on the kept board. Cosmetic
+  rules edge, only reachable mid-animation.

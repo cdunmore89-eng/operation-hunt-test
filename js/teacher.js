@@ -29,7 +29,7 @@ const elements = {
     revealButton: document.querySelector("#reveal-button"),
     previousPlayerButton: document.querySelector("#previous-player-button"),
     nextPlayerButton: document.querySelector("#next-player-button"),
-    resetSessionButton: document.querySelector("#reset-session-button"),
+    resetScoresButton: document.querySelector("#reset-scores-button"),
     resetBoardButton: document.querySelector("#reset-board-button"),
 
     operation: document.querySelector("#operation"),
@@ -278,7 +278,7 @@ function advancePlayer(direction = 1) {
 }
 
 function generatePuzzle(options = {}) {
-    const { advanceTurn = true, preserveTimer = false } = options;
+    const { preserveTimer = false } = options;
     let settings;
 
     try {
@@ -286,10 +286,6 @@ function generatePuzzle(options = {}) {
     } catch (error) {
         window.alert(error.message);
         return;
-    }
-
-    if (advanceTurn && puzzleExists() && !isPracticeMode()) {
-        advancePlayer(1);
     }
 
     if (!preserveTimer) {
@@ -407,37 +403,27 @@ function resetBoard() {
     render();
 }
 
-function resetSession() {
-    const confirmed = window.confirm("Reset all scores and session data?");
+function resetScores() {
+    const confirmed = window.confirm("Reset all player scores to zero? Player names and the current board will be kept.");
 
     if (!confirmed) {
         return;
     }
 
-    stopTimer();
-    state.players = Array.from({ length: PLAYER_LIMIT }, (_, index) => ({
-        name: `Player ${index + 1}`,
-        score: 0,
-        attempts: 0,
-        correct: 0,
-        currentStreak: 0,
-        bestStreak: 0,
-        roundStatus: stateApi.ROUND_STATUSES.NOT_STARTED
-    }));
-    state.totalPuzzles = 0;
-    state.totalAttempts = 0;
-    state.totalCorrect = 0;
-    state.activePlayerIndex = 0;
-    state.practice = {
-        puzzlesAttempted: 0,
-        strikes: 0,
-        misses: 0,
-        currentStreak: 0,
-        bestStreak: 0
-    };
-    resetPuzzleState();
-    resetTimerToDuration();
-    saveState("teacher-reset-session");
+    // Zeroed in place on the shared players array, so the
+    // save below broadcasts the zeroed scores to the Smart
+    // Board exactly like any other player mutation. Names,
+    // the current board, the active player and the Session
+    // Intel totals are all kept.
+    state.players.forEach(player => {
+        player.score = 0;
+        player.attempts = 0;
+        player.correct = 0;
+        player.currentStreak = 0;
+        player.bestStreak = 0;
+    });
+
+    saveState("teacher-reset-scores");
     render();
 }
 
@@ -458,6 +444,105 @@ function updateGameMode() {
     render();
 }
 
+/*
+Seamless settings changes (Operation / Allow Negatives):
+changing either setting never wipes the board and never
+asks for confirmation. The setting itself is written
+through the shared-state in-place setters (save +
+broadcast, no puzzle/timer reset); the board decision is
+the engine's evaluateBoardForSettings — if the exact same
+tiles are still legal under the new settings AND at least
+one valid combination exists on them for the (possibly
+new) operation, the board stays in play with only the
+selection/feedback cleared and the solution set
+recomputed. Otherwise a fresh puzzle is dealt in place
+immediately, without advancing the turn and without
+touching the timer. Scores, names and the active player
+are untouched either way, and the final save broadcasts
+the result so the Smart Board reflects the new operation
+and the (kept or re-dealt) board.
+*/
+function evaluateCurrentBoard() {
+    if (typeof puzzleEngine.evaluateBoardForSettings === "function") {
+        return puzzleEngine.evaluateBoardForSettings(state.puzzle, {
+            operation: getOperation(),
+            allowNegatives: Boolean(state.settings.allowNegatives),
+            requiredAddends: state.settings.requiredAddends
+        });
+    }
+
+    // Fallback for an older engine build: same decision
+    // assembled from the primitives.
+    const combinations = puzzleEngine.findCombinations(
+        state.puzzle,
+        state.settings.requiredAddends,
+        [],
+        getOperation()
+    );
+
+    const tilesLegal = state.puzzle.every(value => (
+        Number.isInteger(value) && value >= getMinimumFloor()
+    ));
+
+    return {
+        playable: tilesLegal && combinations.length > 0,
+        combinations
+    };
+}
+
+function keepCurrentBoard(combinations) {
+    // Teacher clearSelection also clears the selection,
+    // struck indexes, completed triples, the equation and
+    // the Max Out feedback/current-triple fields.
+    clearSelection();
+
+    state.validCombinations = [...combinations];
+
+    // Mirror generatePuzzle / createNumberPuzzle: "triples"
+    // are the 2-term combinations when more terms are in play.
+    state.validTriples = state.settings.requiredAddends === 2
+        ? [...combinations]
+        : puzzleEngine.findCombinations(state.puzzle, 2, [], getOperation());
+
+    const primaryCombo = combinations[0];
+
+    state.correctAddends = primaryCombo ? [...primaryCombo.addendValues] : [];
+    state.sum = primaryCombo ? primaryCombo.resultValue : null;
+    state.equation = primaryCombo ? primaryCombo.equation : "";
+    state.maxOut.remainingTripleCount = combinations.length;
+    state.maxOut.puzzleComplete = false;
+    state.status = "OPEN";
+}
+
+function applySettingsChangeToBoard() {
+    if (!puzzleExists()) {
+        return;
+    }
+
+    if (state.status === "TIME_UP") {
+        // The round already ended, so there is no live board
+        // to preserve; clear back to WAITING the same way
+        // Reset Board does.
+        resetPuzzleState();
+        resetTimerToDuration();
+        return;
+    }
+
+    const evaluation = evaluateCurrentBoard();
+
+    if (evaluation.playable) {
+        keepCurrentBoard(evaluation.combinations);
+        return;
+    }
+
+    // Not playable under the new settings: deal a fresh
+    // puzzle in place. generatePuzzle never advances the
+    // turn, and preserveTimer leaves a running timer
+    // exactly as it was. (generatePuzzle also saves and
+    // renders.)
+    generatePuzzle({ preserveTimer: true });
+}
+
 function updateOperation() {
     if (!elements.operation) {
         return;
@@ -472,27 +557,15 @@ function updateOperation() {
         return;
     }
 
-    const confirmed = !puzzleExists() || window.confirm(
-        "Changing the operation will clear the current puzzle. Continue?"
-    );
-
-    if (!confirmed) {
-        elements.operation.value = getOperation();
-        return;
-    }
-
-    stopTimer();
-
-    if (typeof stateApi.setOperation === "function") {
-        // setOperation updates the shared setting, resets the shared
-        // puzzle/timer/max-out state and saves + broadcasts.
-        stateApi.setOperation(selectedOperation);
-    } else {
-        state.settings.operation = selectedOperation;
-        resetPuzzleState();
-        resetTimerToDuration();
-        saveState("teacher-operation-updated");
-    }
+    // Update the shared setting locally first (no save yet),
+    // run the seamless board decision, and only then persist
+    // — via the shared-state in-place setter where available
+    // (unlike the older setOperation it does NOT reset the
+    // puzzle/timer/max-out state). Saving only the final
+    // state matters: an intermediate save carrying the new
+    // operation with the old board could be echoed back by
+    // the Smart Board's sync and overwrite the final state.
+    state.settings.operation = selectedOperation;
 
     // The maximum may need to rise for the new operation; this also
     // re-syncs state.settings from the controls.
@@ -502,7 +575,14 @@ function updateOperation() {
         // Keep the teacher's typed values; generation validates too.
     }
 
-    saveState("teacher-operation-updated");
+    applySettingsChangeToBoard();
+
+    if (typeof stateApi.setOperationInPlace === "function") {
+        stateApi.setOperationInPlace(selectedOperation);
+    } else {
+        saveState("teacher-operation-updated");
+    }
+
     render();
 }
 
@@ -517,30 +597,16 @@ function updateAllowNegatives() {
         return;
     }
 
-    const confirmed = !puzzleExists() || window.confirm(
-        "Changing Allow Negatives will clear the current puzzle. Continue?"
-    );
+    // Same ordering as updateOperation: mutate locally
+    // (including the minimum floor re-clamp), run the
+    // seamless board decision, then persist the final state
+    // once — via the shared-state in-place setter where
+    // available (unlike the older setAllowNegatives it does
+    // NOT reset the puzzle/timer/max-out state).
+    state.settings.allowNegatives = selectedValue;
 
-    if (!confirmed) {
-        elements.allowNegativesToggle.checked = Boolean(state.settings.allowNegatives);
-        return;
-    }
-
-    stopTimer();
-
-    if (typeof stateApi.setAllowNegatives === "function") {
-        // Also re-clamps the minimum to the new floor in shared state.
-        stateApi.setAllowNegatives(selectedValue);
-    } else {
-        state.settings.allowNegatives = selectedValue;
-
-        if (state.settings.minimumNumber < getMinimumFloor()) {
-            state.settings.minimumNumber = getMinimumFloor();
-        }
-
-        resetPuzzleState();
-        resetTimerToDuration();
-        saveState("teacher-negatives-updated");
+    if (state.settings.minimumNumber < getMinimumFloor()) {
+        state.settings.minimumNumber = getMinimumFloor();
     }
 
     elements.minimumNumber.min = String(getMinimumFloor());
@@ -555,7 +621,14 @@ function updateAllowNegatives() {
         // Keep the teacher's typed values; generation validates too.
     }
 
-    saveState("teacher-negatives-updated");
+    applySettingsChangeToBoard();
+
+    if (typeof stateApi.setAllowNegativesInPlace === "function") {
+        stateApi.setAllowNegativesInPlace(selectedValue);
+    } else {
+        saveState("teacher-negatives-updated");
+    }
+
     render();
 }
 
@@ -730,7 +803,7 @@ function renderSummary() {
 function renderPerformanceTable() {
     elements.performanceTable.replaceChildren();
 
-    state.players.forEach((player, index) => {
+    state.players.slice(0, state.playerCount).forEach((player, index) => {
         const row = document.createElement("div");
         row.className = "performance-row";
 
@@ -844,7 +917,7 @@ function connectEvents() {
     elements.revealButton.addEventListener("click", revealAnswer);
     elements.previousPlayerButton.addEventListener("click", () => movePlayer(-1));
     elements.nextPlayerButton.addEventListener("click", () => movePlayer(1));
-    elements.resetSessionButton.addEventListener("click", resetSession);
+    elements.resetScoresButton.addEventListener("click", resetScores);
     elements.resetBoardButton.addEventListener("click", resetBoard);
 
     if (elements.operation) {

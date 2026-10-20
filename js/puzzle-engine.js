@@ -1327,6 +1327,88 @@
         );
     }
 
+    /*
+    Decides whether an existing board can stay in play after
+    a settings change (operation and/or Allow Negatives). The
+    board is playable under the new settings only when:
+      (a) every tile is legal — whole numbers, and no negative
+          tiles while Allow Negatives is off (the same -20
+          floor the generator enforces while it is on); and
+      (b) at least one valid combination exists on those exact
+          tiles for the operation, found by findCombinations
+          (which applies the strict click-order rules for
+          subtraction / division).
+    Returns { playable, reason, combinations } where reason is
+    "playable", "no-board", "illegal-tiles" or "no-combination".
+    Pure and DOM-free so the controllers and the node test
+    suites share one implementation of the decision.
+    */
+    function evaluateBoardForSettings(
+        numbers,
+        options = {}
+    ) {
+        const operation =
+            normalizeOperation(options.operation);
+
+        const allowNegatives =
+            Boolean(options.allowNegatives);
+
+        const requiredAddends =
+            normalizeRequiredAddends(
+                options.requiredAddends
+            );
+
+        if (
+            !Array.isArray(numbers) ||
+            numbers.length < requiredAddends + 1
+        ) {
+            return {
+                playable: false,
+                reason: "no-board",
+                combinations: []
+            };
+        }
+
+        const minimumTile =
+            allowNegatives ? -20 : 1;
+
+        const tilesLegal = numbers.every(
+            value =>
+                Number.isInteger(value) &&
+                value >= minimumTile
+        );
+
+        if (!tilesLegal) {
+            return {
+                playable: false,
+                reason: "illegal-tiles",
+                combinations: []
+            };
+        }
+
+        const combinations =
+            findCombinations(
+                numbers,
+                requiredAddends,
+                [],
+                operation
+            );
+
+        if (combinations.length === 0) {
+            return {
+                playable: false,
+                reason: "no-combination",
+                combinations
+            };
+        }
+
+        return {
+            playable: true,
+            reason: "playable",
+            combinations
+        };
+    }
+
     function createFourNumberPuzzle(
         minimum,
         maximum
@@ -1411,6 +1493,7 @@
             hasRemainingTriples,
             createNumberPuzzle,
             createFourNumberPuzzle,
+            evaluateBoardForSettings,
             getAllowedRequiredAddends,
             getMinimumMaximumForBoard,
             getMinimumMaximumForAddends,

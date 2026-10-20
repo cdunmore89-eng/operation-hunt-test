@@ -90,6 +90,7 @@ const state = {
 
 let feedbackTimeoutId = null;
 let timerIntervalId = null;
+let boardSwapTimeoutId = null;
 
 /*
 ====================================================
@@ -158,9 +159,9 @@ const elements = {
             "#next-player-button"
         ),
 
-    resetSessionButton:
+    resetScoresButton:
         document.querySelector(
-            "#reset-session-button"
+            "#reset-scores-button"
         ),
 
     resetBoardButton:
@@ -514,6 +515,161 @@ MODE CONTROL
 ====================================================
 */
 
+/*
+Seamless settings changes (Operation / Allow Negatives):
+changing either setting never wipes the board and never
+asks for confirmation. The decision is the engine's
+evaluateBoardForSettings: if the exact same tiles are
+still legal under the new settings AND at least one valid
+combination exists on them for the (possibly new)
+operation, the board stays in play — only the current
+selection/feedback is cleared and the solution set is
+recomputed. Otherwise a fresh puzzle is dealt in place
+immediately, without advancing the turn and without
+touching the timer, so the board never sits blank in a
+WAITING state mid-session. Scores, names and the active
+player are untouched either way.
+*/
+function evaluateCurrentBoard() {
+    if (
+        puzzleEngine &&
+        typeof puzzleEngine.evaluateBoardForSettings ===
+            "function"
+    ) {
+        return puzzleEngine.evaluateBoardForSettings(
+            state.puzzle,
+            {
+                operation: getOperation(),
+                allowNegatives:
+                    state.settings.allowNegatives,
+                requiredAddends:
+                    state.settings.requiredAddends
+            }
+        );
+    }
+
+    // Fallback for an older engine build: same decision
+    // assembled from the primitives.
+    const combinations =
+        puzzleEngine.findCombinations(
+            state.puzzle,
+            state.settings.requiredAddends,
+            [],
+            getOperation()
+        );
+
+    const tilesLegal =
+        state.puzzle.every(
+            value =>
+                Number.isInteger(value) &&
+                value >= getMinimumFloor()
+        );
+
+    return {
+        playable:
+            tilesLegal &&
+            combinations.length > 0,
+        combinations
+    };
+}
+
+function keepCurrentBoard(combinations) {
+    clearSelection();
+
+    state.struckIndexes = [];
+    state.completedTriples = [];
+
+    state.validCombinations = [
+        ...combinations
+    ];
+
+    // Mirror createNumberPuzzle: "triples" are the
+    // 2-term combinations when more terms are in play.
+    state.validTriples =
+        state.settings.requiredAddends === 2
+            ? [...combinations]
+            : puzzleEngine.findCombinations(
+                state.puzzle,
+                2,
+                [],
+                getOperation()
+            );
+
+    state.equation =
+        combinations.length > 0
+            ? combinations[0].equation
+            : "";
+
+    state.status = "OPEN";
+}
+
+function applySettingsChangeToBoard() {
+    if (!puzzleExists()) {
+        return;
+    }
+
+    clearFeedbackTimeout();
+
+    if (state.status === "TIME_UP") {
+        // The round already ended, so there is no live
+        // board to preserve; clear back to WAITING the
+        // same way Reset Board does.
+        resetPuzzleState();
+        resetTimerToDuration();
+        return;
+    }
+
+    const evaluation =
+        evaluateCurrentBoard();
+
+    if (evaluation.playable) {
+        keepCurrentBoard(
+            evaluation.combinations
+        );
+
+        return;
+    }
+
+    // Not playable under the new settings: deal a fresh
+    // puzzle in place. generatePuzzle never advances the
+    // turn, and preserveTimer leaves a running timer
+    // exactly as it was. The swap is instant and in place
+    // (no reload, no WAITING frame); flagBoardSwap only
+    // adds a brief fade so the new tiles land smoothly.
+    const previousPuzzle =
+        state.puzzle.join(",");
+
+    generatePuzzle({
+        preserveTimer: true
+    });
+
+    if (
+        puzzleExists() &&
+        state.puzzle.join(",") !== previousPuzzle
+    ) {
+        flagBoardSwap();
+    }
+}
+
+function flagBoardSwap() {
+    elements.puzzleBoard.classList.add(
+        "board-swap"
+    );
+
+    if (boardSwapTimeoutId !== null) {
+        window.clearTimeout(boardSwapTimeoutId);
+    }
+
+    boardSwapTimeoutId =
+        window.setTimeout(() => {
+            boardSwapTimeoutId = null;
+
+            elements.puzzleBoard.classList.remove(
+                "board-swap"
+            );
+        }, 400);
+}
+
 function updateOperation() {
     if (!elements.operation) {
         return;
@@ -534,29 +690,14 @@ function updateOperation() {
         return;
     }
 
-    const confirmed =
-        !puzzleExists() ||
-        window.confirm(
-            "Changing the operation will clear the current puzzle. Continue?"
-        );
-
-    if (!confirmed) {
-        elements.operation.value =
-            getOperation();
-
-        return;
-    }
-
-    clearFeedbackTimeout();
-    stopTimer();
-    resetPuzzleState();
-
     state.settings.operation =
         selectedOperation;
 
     // The maximum may need to rise for the new
     // operation (e.g. multiplication / division).
     enforceNumberRangeForGrid();
+
+    applySettingsChangeToBoard();
 
     render();
 }
@@ -584,32 +725,15 @@ function updateAllowNegatives() {
         return;
     }
 
-    const confirmed =
-        !puzzleExists() ||
-        window.confirm(
-            "Changing Allow Negatives will clear the current puzzle. Continue?"
-        );
-
-    if (!confirmed) {
-        elements.allowNegativesToggle.checked =
-            state.settings.allowNegatives;
-
-        return;
-    }
-
-    clearFeedbackTimeout();
-    stopTimer();
-
     state.settings.allowNegatives =
         selectedValue;
-
-    resetPuzzleState();
-    resetTimerToDuration();
 
     // Re-clamps the minimum to the new floor (1 when
     // negatives are off, -20 when they are on) and
     // raises the maximum if the operation needs it.
     enforceNumberRangeForGrid();
+
+    applySettingsChangeToBoard();
 
     render();
 }
@@ -985,7 +1109,6 @@ function readNumberSettings() {
 
 function generatePuzzle(options = {}) {
     const {
-        advanceTurn = true,
         preserveTimer = false
     } = options;
 
@@ -997,14 +1120,6 @@ function generatePuzzle(options = {}) {
     } catch (error) {
         window.alert(error.message);
         return;
-    }
-
-    if (
-        advanceTurn &&
-        puzzleExists() &&
-        !isPracticeMode()
-    ) {
-        advancePlayer(1);
     }
 
     if (!preserveTimer) {
@@ -1096,7 +1211,6 @@ function generatePuzzle(options = {}) {
 function generateNextFlowPuzzle() {
     if (isPracticeMode()) {
         generatePuzzle({
-            advanceTurn: false,
             preserveTimer: true
         });
 
@@ -1112,7 +1226,6 @@ function generateNextFlowPuzzle() {
     }
 
     generatePuzzle({
-        advanceTurn: false,
         preserveTimer: true
     });
 }
@@ -1437,29 +1550,23 @@ function resetBoard() {
     render();
 }
 
-function resetSession() {
+function resetScores() {
     const confirmed =
         window.confirm(
-            "Reset all scores and session data?"
+            "Reset all player scores to zero? Player names and the current board will be kept."
         );
 
     if (!confirmed) {
         return;
     }
 
-    clearFeedbackTimeout();
-    stopTimer();
-
-    state.players =
-        createPlayers();
-
-    state.totalPuzzles = 0;
-    state.totalAttempts = 0;
-    state.totalCorrect = 0;
-    state.activePlayerIndex = 0;
-
-    resetPuzzleState();
-    resetTimerToDuration();
+    state.players.forEach(player => {
+        player.score = 0;
+        player.attempts = 0;
+        player.correct = 0;
+        player.currentStreak = 0;
+        player.bestStreak = 0;
+    });
 
     render();
 }
@@ -2081,7 +2188,9 @@ function renderEquation() {
 function renderScoreboard() {
     elements.scoreboard.replaceChildren();
 
-    state.players.forEach(
+    state.players
+        .slice(0, state.playerCount)
+        .forEach(
         (player, index) => {
             const row =
                 document.createElement(
@@ -2374,10 +2483,7 @@ function connectEvents() {
     elements.newPuzzleButton.addEventListener(
         "click",
         () => {
-            generatePuzzle({
-                advanceTurn: true,
-                preserveTimer: false
-            });
+            generatePuzzle();
         }
     );
 
@@ -2398,10 +2504,10 @@ function connectEvents() {
             () => movePlayer(1)
         );
 
-    elements.resetSessionButton
+    elements.resetScoresButton
         .addEventListener(
             "click",
-            resetSession
+            resetScores
         );
 
     elements.resetBoardButton
