@@ -781,7 +781,15 @@ function renderEquation() {
             return;
         }
 
-        elements.equationDisplay.textContent = algebraEngine.getSkillDescription(round.skill);
+        // The equation bar is the game's equation area, so with
+        // no tile selected it carries the round's equation
+        // itself: the banner equation for Missing Number /
+        // Solve, the announced value ("x = 4") for Evaluate, and
+        // an equivalence template for Equivalent Expressions —
+        // never a help sentence.
+        elements.equationDisplay.textContent = round.banner.kind === "instruction"
+            ? "□  ≟  □"
+            : round.banner.text;
         return;
     }
 

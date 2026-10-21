@@ -25,6 +25,13 @@ ALGEBRA_MODE_DESIGN.md and Clarence's four decisions):
 - I4: source-level wiring — all three screens load the
   algebra engine, Demo/Teacher carry the controls, the
   Smart Board carries the banner and NO new controls.
+- I5: fifth pass — the equation bar carries the equation.
+  During an open round with no tile selected, Demo and
+  Smart Board renderEquation show the banner equation
+  (Missing Number / Solve), the announced value (Evaluate),
+  or the equivalence template (Equivalent Expressions),
+  never the skill description sentence; the engine tags
+  each round's banner with the matching kind.
 */
 
 const fs = require("fs");
@@ -718,6 +725,79 @@ function loadSharedState(storageData) {
     assert(sharedJs.includes("setContentInPlace") && sharedJs.includes("setAlgebraSkillInPlace") &&
         sharedJs.includes("setGradeBandInPlace") && sharedJs.includes("setSolveStepsInPlace"),
         "I4: shared-state exports the algebra in-place setters");
+}
+
+/* ---------------- I5: the equation bar carries the equation ---------------- */
+
+{
+    const missing = algebra.createAlgebraPuzzle({
+        skill: "missing-number", gradeBand: "k-2", gridSize: 2,
+        allowNegatives: false, solveSteps: "mixed"
+    });
+
+    assert(missing.banner.kind === "equation",
+        "I5: Missing Number rounds carry banner kind \"equation\"");
+    assert(missing.banner.text === missing.question.display && missing.banner.text.includes("="),
+        "I5: Missing Number banner text is the equation itself");
+
+    const solve = algebra.createAlgebraPuzzle({
+        skill: "solve", gradeBand: "6-8", gridSize: 2,
+        allowNegatives: false, solveSteps: "mixed"
+    });
+
+    assert(solve.banner.kind === "equation",
+        "I5: Solve rounds carry banner kind \"equation\"");
+    assert(solve.banner.text === solve.question.display && solve.banner.text.includes("="),
+        "I5: Solve banner text is the equation itself");
+
+    const evaluateRound = algebra.createAlgebraPuzzle({
+        skill: "evaluate", gradeBand: "3-5", gridSize: 2,
+        allowNegatives: false, solveSteps: "mixed",
+        operation: "addition"
+    });
+
+    assert(evaluateRound.banner.kind === "variable",
+        "I5: Evaluate rounds carry banner kind \"variable\"");
+    assert(evaluateRound.banner.text ===
+        `${evaluateRound.variable.name} = ${evaluateRound.variable.value}`,
+        "I5: Evaluate banner text announces the variable value");
+
+    const equivalent = algebra.createAlgebraPuzzle({
+        skill: "equivalent", gradeBand: "6-8", gridSize: 2,
+        allowNegatives: false, solveSteps: "mixed"
+    });
+
+    assert(equivalent.banner.kind === "instruction",
+        "I5: Equivalent rounds carry banner kind \"instruction\"");
+}
+
+{
+    const demoJs = fs.readFileSync(`${BASE}/js/demo.js`, "utf8");
+    const smartboardJs = fs.readFileSync(`${BASE}/js/smartboard.js`, "utf8");
+
+    function renderEquationSource(source) {
+        const start = source.indexOf("function renderEquation()");
+        const end = source.indexOf("\nfunction ", start + 1);
+
+        return source.slice(start, end === -1 ? source.length : end);
+    }
+
+    for (const [name, source] of [["demo", demoJs], ["smartboard", smartboardJs]]) {
+        const renderEquation = renderEquationSource(source);
+
+        assert(renderEquation.length > 0,
+            `I5: ${name}.js renderEquation found`);
+        assert(!renderEquation.includes("getSkillDescription"),
+            `I5: ${name}.js renderEquation never falls back to the skill description`);
+        assert(renderEquation.includes("round.banner.kind === \"instruction\""),
+            `I5: ${name}.js renderEquation branches on the banner kind`);
+        assert(renderEquation.includes("round.banner.text"),
+            `I5: ${name}.js renderEquation shows the banner text in the equation bar`);
+        assert(renderEquation.includes("□  ≟  □"),
+            `I5: ${name}.js renderEquation shows the equivalence template for instruction banners`);
+        assert(source.includes("getSkillDescription"),
+            `I5: ${name}.js keeps the skill description in its legitimate spots (header / picker)`);
+    }
 }
 
 /* ---------------- summary ---------------- */

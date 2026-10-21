@@ -716,3 +716,105 @@ pacing (≥1 s between synced actions):
   round; on non-Evaluate rounds dealt under Mixed, the
   dropdown simply has no effect until an Evaluate
   round is dealt.
+
+## Equation bar carries the equation (fifth pass, 2026-10-20)
+
+A UX flaw Clarence reported from the student's seat: during
+an open algebra round with no tile selected, the big
+EQUATION bar — the game's designated equation area, where
+the equation lives and builds during arithmetic play —
+showed the skill *description sentence* ("Students solve
+the banner equation by picking the value that makes it
+true.") instead of the round's equation. The equation
+itself only appeared in the banner strip above the board,
+so a student reading the equation bar found no equation
+to solve and the round read as "pick a random number".
+
+### The fix (demo + smart board only)
+
+- In the algebra branch of `renderEquation()` in
+  `js/demo.js` and `js/smartboard.js`, the open-round /
+  no-selection case no longer falls back to
+  `algebraEngine.getSkillDescription(round.skill)`. It now
+  shows the round itself:
+  - Banner kind `equation` (Missing Number, Solve for x):
+    `round.banner.text` — the equation, e.g.
+    `18 − ★ = 14`, `5n + 18 = 48`.
+  - Banner kind `variable` (Evaluate Expressions):
+    `round.banner.text` — the announced given, `x = 4`.
+  - Banner kind `instruction` (Equivalent Expressions):
+    the pair template `□  ≟  □` (the same □/≟ glyphs the
+    game already uses for unknowns and the equivalence
+    check), since that skill has no single equation; the
+    banner kicker already names the task.
+- Nothing else in `renderEquation()` changed: SOLVED /
+  COMPLETE / REVEALED and TRY_AGAIN still show the worked
+  strike/miss line, and the selection branches still build
+  the faces equation as tiles are clicked.
+- The skill descriptions themselves were NOT removed —
+  they stay in their legitimate spots (Demo header
+  instructions and skill-picker description, Smart Board
+  header instruction line, Teacher skill-picker
+  description). Only the equation bar stopped borrowing
+  them.
+- Teacher screen unchanged: its banner card
+  (`renderAlgebraBanner()` in `js/teacher.js`) already
+  sets the banner text to `round.banner.text` during an
+  open round — verified by reading the render path — and
+  its dashboard is teacher-facing. A sweep for the same
+  pattern elsewhere found no other student-facing site:
+  the only `equationDisplay` writers are the two fixed
+  functions, their arithmetic branches (which build from
+  the selection), and the orphaned, never-loaded
+  `js/game-engine.js`, which has no algebra code.
+
+### Tests (fifth pass)
+
+- `tests/test-algebra.js` gained **Section I5** (19 new
+  checks): engine-level assertions that generated rounds
+  carry the right banner kind per skill (Missing Number
+  and Solve → `equation` with `banner.text` equal to the
+  question display; Evaluate → `variable` with the
+  announced value; Equivalent → `instruction`), and
+  source-level assertions that both `renderEquation()`
+  implementations branch on `round.banner.kind`, show
+  `round.banner.text`, render the `□  ≟  □` template,
+  and contain no `getSkillDescription` fallback — while
+  both files still use the description in its legitimate
+  spots.
+- Full regression, all 0 failures: `test-algebra.js`
+  **18,978 checks** (18,959 in the fourth pass + 19 new);
+  `test-multi-op.js` 917,736 checks this run (the count
+  varies between runs — it includes per-combination
+  assertions on randomly generated boards);
+  `test-teacher-smartboard.js` 47/47;
+  `test-port-fixes.js` 78/78. `node --check` passes on
+  both changed files.
+
+### Live verification (fifth pass, headless Chrome via CDP, file:// pages, fresh profiles)
+
+All reads are BEFORE any tile is clicked, unless noted:
+
+- **Demo, Missing Number (K–2):** banner `★ + 8 = 12`,
+  equation bar `★ + 8 = 12`.
+  (`screenshots/algebra-equation-bar-missing.png`)
+- **Demo, Solve for x (6–8):** banner `n − 19 = 2`,
+  equation bar `n − 19 = 2`. Clicking the solution tile
+  (21) replaced the bar with the worked line
+  `21 − 19 = 2 ✓`, as before.
+  (`screenshots/algebra-equation-bar-solve.png`)
+- **Demo, Evaluate Expressions (3–5):** banner `x = 4`,
+  equation bar `x = 4`.
+- **Smart Board (Teacher dealt the round in the same
+  browser):** banner `31 − x = 27`, board equation bar
+  `31 − x = 27`; a student strike on the board replaced
+  it with `31 − 4 = 27 ✓`.
+  (`screenshots/algebra-equation-bar-board.png`)
+
+### Known limits (fifth pass)
+
+- Local only — NOT pushed to GitHub in this pass; the
+  pushed `multi-op` branch is still commit
+  3dc5cadfb14bc09f1a7566dfb559c44bfc449d3b and the local
+  files now differ from it (see the sync record's
+  `local_note`).
